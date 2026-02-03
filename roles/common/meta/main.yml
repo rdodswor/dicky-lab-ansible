@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Richard Dodsworth
+  description: Common configuration for all Dicky Lab hosts
+  company: Dicky Lab
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - system
+    - common
+    - baseline
+
+dependencies: []

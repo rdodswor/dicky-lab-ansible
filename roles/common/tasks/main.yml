@@ -1,0 +1,139 @@
+---
+# Common role tasks
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+  tags:
+    - common
+    - timezone
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+  tags:
+    - common
+    - packages
+
+- name: Install common packages
+  apt:
+    name: "{{ common_packages }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  tags:
+    - common
+    - packages
+
+- name: Remove unwanted packages
+  apt:
+    name: "{{ unwanted_packages }}"
+    state: absent
+    purge: yes
+  when:
+    - ansible_os_family == "Debian"
+    - unwanted_packages is defined
+    - unwanted_packages | length > 0
+  tags:
+    - common
+    - packages
+
+# NTP/Chrony configuration
+- name: Remove conflicting NTP services
+  apt:
+    name:
+      - ntp
+      - ntpdate
+      - systemd-timesyncd
+    state: absent
+    purge: yes
+  when: ntp_service == "chrony"
+  tags:
+    - common
+    - ntp
+    - chrony
+
+- name: Install chrony
+  apt:
+    name: chrony
+    state: present
+    update_cache: yes
+  when: ntp_enabled | bool
+  tags:
+    - common
+    - ntp
+    - chrony
+
+- name: Configure chrony
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  when: ntp_enabled | bool
+  notify:
+    - restart chrony
+  tags:
+    - common
+    - ntp
+    - chrony
+
+- name: Ensure chrony service is enabled and started
+  service:
+    name: chrony
+    state: started
+    enabled: yes
+  when: ntp_enabled | bool
+  tags:
+    - common
+    - ntp
+    - chrony
+
+- name: Wait for chrony to synchronize
+  command: chronyc waitsync 30 0.01
+  register: chrony_sync
+  changed_when: false
+  failed_when: false
+  when: ntp_enabled | bool
+  tags:
+    - common
+    - ntp
+    - chrony
+
+- name: Display chrony sync status
+  debug:
+    msg: "Chrony synchronization: {{ 'successful' if chrony_sync.rc == 0 else 'waiting for sync' }}"
+  when:
+    - ntp_enabled | bool
+    - chrony_sync is defined
+  tags:
+    - common
+    - ntp
+    - chrony
+
+- name: Get chrony sources
+  command: chronyc sources
+  register: chrony_sources
+  changed_when: false
+  when: ntp_enabled | bool
+  tags:
+    - common
+    - ntp
+    - chrony
+    - never  # Only run when explicitly asked
+
+- name: Display chrony sources
+  debug:
+    var: chrony_sources.stdout_lines
+  when:
+    - ntp_enabled | bool
+    - chrony_sources is defined
+  tags:
+    - common
+    - ntp
+    - chrony
+    - never  # Only run when explicitly asked

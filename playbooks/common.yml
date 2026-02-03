@@ -1,0 +1,39 @@
+---
+- name: Apply common configuration to all hosts
+  hosts: all
+  become: yes
+  
+  pre_tasks:
+    - name: Display deployment information
+      debug:
+        msg:
+          - "Applying common configuration to {{ inventory_hostname }}"
+          - "Ansible user: {{ ansible_user }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      tags: always
+
+  roles:
+    - common
+
+  post_tasks:
+    - name: Verify chrony is running
+      service:
+        name: chrony
+      register: chrony_status
+      tags: always
+
+    - name: Display chrony status
+      debug:
+        msg: "Chrony service is {{ chrony_status.status.ActiveState }}"
+      tags: always
+
+    - name: Get current time synchronization status
+      command: timedatectl status
+      register: timedatectl_output
+      changed_when: false
+      tags: always
+
+    - name: Display time sync status
+      debug:
+        var: timedatectl_output.stdout_lines
+      tags: always

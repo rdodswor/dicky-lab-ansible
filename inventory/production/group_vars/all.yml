@@ -13,8 +13,10 @@ external_dns:
 
 # NTP settings
 ntp_servers:
-  - 0.pool.ntp.org
-  - 1.pool.ntp.org
+  - 0.au.pool.ntp.org
+  - 1.au.pool.ntp.org
+  - 2.au.pool.ntp.org
+  - 3.au.pool.ntp.au
 
 # Timezone
 timezone: Australia/Adelaide
@@ -30,6 +32,8 @@ common_packages:
   - net-tools
   - tcpdump
   - rsync
+  - tmux
+  - dnsutils
 
 # Security settings
 ssh_port: 22

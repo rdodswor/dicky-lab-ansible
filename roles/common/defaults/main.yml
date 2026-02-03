@@ -1,0 +1,49 @@
+---
+# Common role default variables
+
+# Timezone
+timezone: Australia/Adelaide
+
+# NTP/Chrony configuration
+ntp_enabled: true
+ntp_service: chrony
+
+# NTP servers (prefer local/regional)
+ntp_servers:
+  - 0.au.pool.ntp.org
+  - 1.au.pool.ntp.org
+  - 2.au.pool.ntp.org
+  - 3.au.pool.ntp.org
+
+# Fallback to global pools if regional unavailable
+ntp_fallback_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+
+# Allow NTP queries from lab network (optional - if host will be NTP server)
+ntp_allow_networks:
+  - 192.168.100.0/24
+
+# Chrony configuration options
+chrony_makestep_threshold: 1.0
+chrony_makestep_limit: 3
+chrony_rtcsync: true
+chrony_driftfile: /var/lib/chrony/drift
+chrony_logdir: /var/log/chrony
+
+# Common packages to install on all hosts
+common_packages:
+  - vim
+  - htop
+  - curl
+  - wget
+  - git
+  - net-tools
+  - dnsutils
+  - tcpdump
+  - rsync
+  - tmux
+
+# Packages to remove (optional)
+unwanted_packages: []
+#  - snapd  # Uncomment to remove snap
