@@ -1,0 +1,64 @@
+// Automatic upgrade configuration for {{ inventory_hostname }}
+// Managed by Ansible - DO NOT EDIT MANUALLY
+
+// Automatically upgrade packages from these origins
+Unattended-Upgrade::Allowed-Origins {
+{% for origin in unattended_upgrades_origins %}
+    "{{ origin }}";
+{% endfor %}
+};
+
+// List of packages to not update (regular expressions are supported)
+Unattended-Upgrade::Package-Blacklist {
+    // Example blacklist entries:
+    // "vim";
+    // "libc6";
+    // "libc6-dev";
+    // "libc6-i686";
+};
+
+// Split the upgrade into the smallest possible chunks so that
+// they can be interrupted with SIGTERM
+Unattended-Upgrade::MinimalSteps "true";
+
+// Send email to this address for problems or packages upgrades
+{% if unattended_upgrades_email %}
+Unattended-Upgrade::Mail "{{ unattended_upgrades_email }}";
+Unattended-Upgrade::MailReport "on-change";
+{% else %}
+// Unattended-Upgrade::Mail "";
+{% endif %}
+
+// Automatically reboot *WITHOUT CONFIRMATION* if the file
+// /var/run/reboot-required is found after the upgrade
+{% if unattended_upgrades_auto_reboot %}
+Unattended-Upgrade::Automatic-Reboot "true";
+
+// If automatic reboot is enabled and needed, reboot at the specific time
+Unattended-Upgrade::Automatic-Reboot-Time "{{ unattended_upgrades_auto_reboot_time }}";
+{% else %}
+Unattended-Upgrade::Automatic-Reboot "false";
+{% endif %}
+
+// Remove unused automatically installed kernel-related packages
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+
+// Remove unused dependencies after the upgrade
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+
+// Automatically reboot even if there are users currently logged in
+Unattended-Upgrade::Automatic-Reboot-WithUsers "false";
+
+// Download and install upgrades only on AC power
+// (i.e. skip or gracefully stop updates on battery)
+// Unattended-Upgrade::OnlyOnACPower "true";
+
+// Download upgrades during package list update
+Unattended-Upgrade::SyslogEnable "true";
+Unattended-Upgrade::SyslogFacility "daemon";
+
+// Verbose logging
+// Unattended-Upgrade::Verbose "false";
+
+// Print debugging messages for unattended-upgrades
+// Unattended-Upgrade::Debug "false";

@@ -6,3 +6,9 @@
     name: chrony
     state: restarted
   listen: restart chrony
+
+- name: restart unattended-upgrades
+  service:
+    name: unattended-upgrades
+    state: restarted
+  listen: restart unattended-upgrades

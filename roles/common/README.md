@@ -27,6 +27,13 @@ Provides baseline configuration for all hosts in Dicky Lab, including:
 - `common_packages`: List of packages to install
 - `unwanted_packages`: List of packages to remove
 
+### Automatic Updates
+- `unattended_upgrades_enabled`: Enable automatic security updates (default: `true`)
+- `unattended_upgrades_auto_reboot`: Automatically reboot if required (default: `false`)
+- `unattended_upgrades_auto_reboot_time`: Time to reboot if needed (default: `"02:00"`)
+- `unattended_upgrades_email`: Email address for notifications (default: `""`)
+- `unattended_upgrades_origins`: List of apt origins to auto-update (default: security only)
+
 ## Dependencies
 None
 

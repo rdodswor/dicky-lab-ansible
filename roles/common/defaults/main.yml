@@ -36,25 +36,25 @@ common_packages:
   # Text editors & terminal
   - vim
   - tmux
-  
+
   # System monitoring
   - htop
   - ncdu
-  
+
   # Network tools
   - curl
   - wget
   - net-tools
   - dnsutils
   - tcpdump
-  
+
   # System utilities  
   - git
   - rsync
   - tree
   - lsof
   - jq
-  
+
   # Security
   - unattended-upgrades
 
@@ -71,3 +71,12 @@ common_packages:
 # Packages to remove (optional)
 unwanted_packages: []
 #  - snapd  # Uncomment to remove snap
+
+# Unattended upgrades configuration
+unattended_upgrades_enabled: true
+unattended_upgrades_auto_reboot: false
+unattended_upgrades_auto_reboot_time: "02:00"
+unattended_upgrades_email: "rdodswor@dicky.lab"
+unattended_upgrades_origins:
+  - "${distro_id}:${distro_codename}-security"
+  - "${distro_id}:${distro_codename}-updates"

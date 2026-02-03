@@ -137,3 +137,64 @@
     - ntp
     - chrony
     - never  # Only run when explicitly asked
+
+# Automatic security updates
+- name: Install unattended-upgrades
+  apt:
+    name: unattended-upgrades
+    state: present
+    update_cache: yes
+  when:
+    - ansible_os_family == "Debian"
+    - unattended_upgrades_enabled | bool
+  tags:
+    - common
+    - security
+    - unattended-upgrades
+
+- name: Configure unattended-upgrades
+  template:
+    src: 50unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  when:
+    - ansible_os_family == "Debian"
+    - unattended_upgrades_enabled | bool
+  notify: restart unattended-upgrades
+  tags:
+    - common
+    - security
+    - unattended-upgrades
+
+- name: Configure automatic updates
+  template:
+    src: 20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  when:
+    - ansible_os_family == "Debian"
+    - unattended_upgrades_enabled | bool
+  notify: restart unattended-upgrades
+  tags:
+    - common
+    - security
+    - unattended-upgrades
+
+- name: Ensure unattended-upgrades service is enabled and started
+  service:
+    name: unattended-upgrades
+    state: started
+    enabled: yes
+  when:
+    - ansible_os_family == "Debian"
+    - unattended_upgrades_enabled | bool
+  tags:
+    - common
+    - security
+    - unattended-upgrades
