@@ -33,17 +33,40 @@ chrony_logdir: /var/log/chrony
 
 # Common packages to install on all hosts
 common_packages:
+  # Text editors & terminal
   - vim
+  - tmux
+  
+  # System monitoring
   - htop
+  - ncdu
+  
+  # Network tools
   - curl
   - wget
-  - git
   - net-tools
   - dnsutils
   - tcpdump
+  
+  # System utilities  
+  - git
   - rsync
-  - tmux
-  -  tree
+  - tree
+  - lsof
+  - jq
+  
+  # Security
+  - unattended-upgrades
+
+# Optional packages (commented out, uncomment if needed)
+# advanced_packages:
+#   - iotop
+#   - sysstat
+#   - strace
+  - traceroute
+#   - mtr
+#   - netcat-openbsd
+#   - nmap
 
 # Packages to remove (optional)
 unwanted_packages: []
