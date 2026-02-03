@@ -1,0 +1,43 @@
+# Common variables for all hosts
+lab_name: dicky_lab
+lab_domain: dicky.lab
+lab_network: 192.168.100.0/24
+lab_gateway: 192.168.100.1
+
+# DNS settings
+dns_primary: 192.168.100.20
+dns_secondary: 192.168.100.21
+external_dns:
+  - 8.8.8.8
+  - 8.8.4.4
+
+# NTP settings
+ntp_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+
+# Timezone
+timezone: Australia/Adelaide
+
+# Common packages
+common_packages:
+  - vim
+  - htop
+  - tmux
+  - git
+  - curl
+  - wget
+  - net-tools
+  - tcpdump
+  - rsync
+
+# Security settings
+ssh_port: 22
+allow_password_authentication: no
+
+# Admin user
+admin_user: rdodswor
+admin_groups:
+  - sudo
+  - adm
+
