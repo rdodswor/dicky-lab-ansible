@@ -43,6 +43,7 @@ common_packages:
   - tcpdump
   - rsync
   - tmux
+  -  tree
 
 # Packages to remove (optional)
 unwanted_packages: []
