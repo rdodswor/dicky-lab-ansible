@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: Richard Dodsworth
+  description: Primary DHCP server with failover and DDNS
+  company: Dicky Lab
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - dhcp
+    - isc-dhcp-server
+    - networking
+
+dependencies:
+  - role: common

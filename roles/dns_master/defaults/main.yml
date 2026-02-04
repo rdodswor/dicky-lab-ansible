@@ -1,0 +1,20 @@
+---
+# DNS Master Role Defaults
+
+dns_packages:
+  - bind9
+  - bind9utils
+  - bind9-doc
+  - dnsutils
+
+dns_service: named
+
+# Directories
+dns_conf_dir: /etc/bind
+dns_zone_dir: /var/lib/bind/zones
+dns_cache_dir: /var/cache/bind
+dns_log_dir: /var/log/named
+
+dns_serial: 2025020401
+dnssec_enabled: false
+ddns_key_name: "dicky-lab-key"

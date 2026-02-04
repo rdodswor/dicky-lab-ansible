@@ -1,0 +1,20 @@
+// Local zones for {{ inventory_hostname }} (Secondary)
+// Managed by Ansible - DO NOT EDIT MANUALLY
+
+// Forward zone (slave)
+zone "{{ dns_domain }}" {
+    type slave;
+    file "{{ dns_cache_dir }}/db.{{ dns_domain }}";
+    masters { {{ dns_primary_server }}; };
+    allow-query { any; };
+    notify no;
+};
+
+// Reverse zone (slave)
+zone "{{ dns_reverse_zone }}" {
+    type slave;
+    file "{{ dns_cache_dir }}/db.{{ dns_reverse_zone }}";
+    masters { {{ dns_primary_server }}; };
+    allow-query { any; };
+    notify no;
+};

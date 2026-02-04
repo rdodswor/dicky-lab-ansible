@@ -1,0 +1,33 @@
+---
+# Master playbook for complete Dicky Lab deployment
+
+- name: Deploy Common Configuration
+  import_playbook: common.yml
+
+- name: Deploy DNS and DHCP Infrastructure
+  import_playbook: infrastructure.yml
+
+- name: Complete Deployment Summary
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Display completion message
+      debug:
+        msg:
+          - "========================================="
+          - "Dicky Lab Infrastructure Deployment Complete!"
+          - "========================================="
+          - ""
+          - "✓ Services Deployed:"
+          - "  - Common baseline (all hosts)"
+          - "  - DNS primary (titus)"
+          - "  - DNS secondary (claudia)"
+          - "  - DHCP primary (titus)"
+          - "  - DHCP secondary (claudia)"
+          - ""
+          - "Next Steps:"
+          - "  1. Verify services with: ansible-playbook playbooks/verify.yml"
+          - "  2. Test DHCP client: dhclient -r && dhclient"
+          - "  3. Deploy CA infrastructure (marcus, tiberius)"
+          - "  4. Configure gateway (porta)"
+          - "========================================="

@@ -1,0 +1,131 @@
+---
+# DNS Master Role Tasks
+
+- name: Install BIND9 packages
+  apt:
+    name: "{{ dns_packages }}"
+    state: present
+    update_cache: yes
+  tags:
+    - dns
+    - packages
+
+- name: Create DNS directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: bind
+    group: bind
+    mode: '0755'
+  loop:
+    - "{{ dns_zone_dir }}"
+    - "{{ dns_log_dir }}"
+  tags:
+    - dns
+    - directories
+
+- name: Generate DDNS key
+  shell: |
+    if [ ! -f {{ dns_conf_dir }}/ddns.key ]; then
+      tsig-keygen -a {{ ddns_key_algorithm }} {{ ddns_key_name }} > {{ dns_conf_dir }}/ddns.key
+      chown root:bind {{ dns_conf_dir }}/ddns.key
+      chmod 640 {{ dns_conf_dir }}/ddns.key
+    fi
+  args:
+    creates: "{{ dns_conf_dir }}/ddns.key"
+  tags:
+    - dns
+    - ddns
+
+- name: Read DDNS key
+  slurp:
+    src: "{{ dns_conf_dir }}/ddns.key"
+  register: ddns_key_content
+  tags:
+    - dns
+    - ddns
+
+- name: Configure named.conf.options
+  template:
+    src: named.conf.options.j2
+    dest: "{{ dns_conf_dir }}/named.conf.options"
+    owner: root
+    group: bind
+    mode: '0644'
+    backup: yes
+    validate: 'named-checkconf %s'
+  notify: restart bind9
+  tags:
+    - dns
+    - config
+
+- name: Configure named.conf.local
+  template:
+    src: named.conf.local.j2
+    dest: "{{ dns_conf_dir }}/named.conf.local"
+    owner: root
+    group: bind
+    mode: '0644'
+    backup: yes
+    validate: 'named-checkconf %s'
+  notify: restart bind9
+  tags:
+    - dns
+    - config
+
+- name: Create forward zone file
+  template:
+    src: db.forward.j2
+    dest: "{{ dns_zone_dir }}/db.{{ dns_domain }}"
+    owner: bind
+    group: bind
+    mode: '0644'
+    backup: yes
+    force: no
+  notify: reload bind9
+  tags:
+    - dns
+    - zones
+
+- name: Create reverse zone file
+  template:
+    src: db.reverse.j2
+    dest: "{{ dns_zone_dir }}/db.{{ dns_reverse_zone }}"
+    owner: bind
+    group: bind
+    mode: '0644'
+    backup: yes
+    force: no
+  notify: reload bind9
+  tags:
+    - dns
+    - zones
+
+- name: Validate zone files
+  command: "named-checkzone {{ item.zone }} {{ item.file }}"
+  loop:
+    - { zone: "{{ dns_domain }}", file: "{{ dns_zone_dir }}/db.{{ dns_domain }}" }
+    - { zone: "{{ dns_reverse_zone }}", file: "{{ dns_zone_dir }}/db.{{ dns_reverse_zone }}" }
+  changed_when: false
+  tags:
+    - dns
+    - zones
+
+- name: Ensure BIND9 is enabled and started
+  service:
+    name: "{{ dns_service }}"
+    state: started
+    enabled: yes
+  tags:
+    - dns
+    - service
+
+- name: Configure AppArmor for BIND9
+  shell: |
+    if [ -f /etc/apparmor.d/usr.sbin.named ]; then
+      aa-complain /usr/sbin.named || true
+    fi
+  changed_when: false
+  tags:
+    - dns
+    - security

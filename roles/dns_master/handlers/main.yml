@@ -1,0 +1,12 @@
+---
+# DNS Master Handlers
+
+- name: restart bind9
+  service:
+    name: named
+    state: restarted
+
+- name: reload bind9
+  service:
+    name: named
+    state: reloaded

@@ -1,0 +1,58 @@
+---
+- name: Deploy DHCP Infrastructure
+  hosts: dhcp_servers
+  become: yes
+  
+  pre_tasks:
+    - name: Display DHCP deployment information
+      debug:
+        msg:
+          - "========================================="
+          - "Deploying DHCP on {{ inventory_hostname }}"
+          - "========================================="
+          - "Role: {{ dhcp_role }}"
+          - "Failover: {{ 'enabled' if dhcp_failover_enabled else 'disabled' }}"
+          - "Pool: {{ dhcp_range_start }} - {{ dhcp_range_end }}"
+      tags: always
+    
+    - name: Verify DNS is running (required for DDNS)
+      service:
+        name: named
+        state: started
+      when: ddns_enabled
+      tags: always
+
+  roles:
+    - role: dhcp_master
+      when: inventory_hostname in groups['dhcp_primary']
+      tags: dhcp_master
+    
+    - role: dhcp_secondary
+      when: inventory_hostname in groups['dhcp_secondary']
+      tags: dhcp_secondary
+  
+  post_tasks:
+    - name: Verify DHCP is running
+      service:
+        name: isc-dhcp-server
+        state: started
+      register: dhcp_status
+      tags: always
+    
+    - name: Display DHCP service status
+      debug:
+        msg: "✓ DHCP service is {{ dhcp_status.status.ActiveState }}"
+      tags: always
+    
+    - name: Check DHCP configuration
+      command: dhcpd -t -cf /etc/dhcp/dhcpd.conf
+      register: dhcp_test
+      changed_when: false
+      failed_when: dhcp_test.rc != 0
+      tags: always
+    
+    - name: Display configuration validation
+      debug:
+        msg: "✓ DHCP configuration is valid"
+      when: dhcp_test.rc == 0
+      tags: always

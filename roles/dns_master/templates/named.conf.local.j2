@@ -1,0 +1,55 @@
+// Local zones for {{ inventory_hostname }}
+// Managed by Ansible - DO NOT EDIT MANUALLY
+
+// Include DDNS key
+include "{{ dns_conf_dir }}/ddns.key";
+
+// Forward zone: {{ dns_domain }}
+zone "{{ dns_domain }}" {
+    type master;
+    file "{{ dns_zone_dir }}/db.{{ dns_domain }}";
+    allow-update { key "{{ ddns_key_name }}"; };
+    
+{% if dns_allow_transfer is defined %}
+    allow-transfer {
+{% for server in dns_allow_transfer %}
+        {{ server }};
+{% endfor %}
+    };
+{% endif %}
+
+{% if dns_also_notify is defined %}
+    also-notify {
+{% for server in dns_also_notify %}
+        {{ server }};
+{% endfor %}
+    };
+{% endif %}
+    
+    notify yes;
+};
+
+// Reverse zone: {{ dns_reverse_zone }}
+zone "{{ dns_reverse_zone }}" {
+    type master;
+    file "{{ dns_zone_dir }}/db.{{ dns_reverse_zone }}";
+    allow-update { key "{{ ddns_key_name }}"; };
+    
+{% if dns_allow_transfer is defined %}
+    allow-transfer {
+{% for server in dns_allow_transfer %}
+        {{ server }};
+{% endfor %}
+    };
+{% endif %}
+
+{% if dns_also_notify is defined %}
+    also-notify {
+{% for server in dns_also_notify %}
+        {{ server }};
+{% endfor %}
+    };
+{% endif %}
+    
+    notify yes;
+};

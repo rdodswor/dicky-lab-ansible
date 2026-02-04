@@ -1,0 +1,59 @@
+---
+- name: Deploy DNS Infrastructure
+  hosts: dns_servers
+  become: yes
+  
+  pre_tasks:
+    - name: Display DNS deployment information
+      debug:
+        msg:
+          - "========================================="
+          - "Deploying DNS on {{ inventory_hostname }}"
+          - "========================================="
+          - "Role: {{ dns_role }}"
+          - "IP: {{ ansible_host }}"
+          - "Domain: {{ dns_domain }}"
+      tags: always
+    
+    - name: Verify DNS prerequisites
+      assert:
+        that:
+          - ansible_os_family == "Debian"
+          - ansible_distribution_version is version('20.04', '>=')
+        fail_msg: "DNS roles require Ubuntu 20.04 or later"
+        success_msg: "✓ Prerequisites verified"
+      tags: always
+
+  roles:
+    - role: dns_master
+      when: inventory_hostname in groups['dns_primary']
+      tags: dns_master
+    
+    - role: dns_secondary
+      when: inventory_hostname in groups['dns_secondary']
+      tags: dns_secondary
+  
+  post_tasks:
+    - name: Verify BIND9 is running
+      service:
+        name: named
+        state: started
+      register: dns_status
+      tags: always
+    
+    - name: Display DNS service status
+      debug:
+        msg: "✓ BIND9 service is {{ dns_status.status.ActiveState }}"
+      tags: always
+    
+    - name: Test DNS resolution (self)
+      command: dig @localhost {{ inventory_hostname }}.{{ dns_domain }} +short
+      register: dig_result
+      changed_when: false
+      failed_when: false
+      tags: always
+    
+    - name: Display DNS test result
+      debug:
+        msg: "DNS resolution test: {{ dig_result.stdout | default('FAILED - Check logs') }}"
+      tags: always

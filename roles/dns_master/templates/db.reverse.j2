@@ -1,0 +1,42 @@
+; Reverse zone for {{ dns_reverse_network }}.0/24
+; Managed by Ansible - DO NOT EDIT MANUALLY
+
+$TTL    {{ dns_default_ttl }}
+@       IN      SOA     {{ inventory_hostname }}.{{ dns_domain }}. {{ dns_admin_email }}. (
+                        {{ dns_serial }}
+                        {{ dns_refresh }}
+                        {{ dns_retry }}
+                        {{ dns_expire }}
+                        {{ dns_negative_ttl }} )
+
+; Name Servers
+@                       IN      NS      {{ inventory_hostname }}.{{ dns_domain }}.
+{% if dns_also_notify is defined %}
+@                       IN      NS      {{ hostvars[groups['dns_secondary'][0]]['hostname'] }}.{{ dns_domain }}.
+{% endif %}
+
+; ========================================
+; Infrastructure PTR Records
+; ========================================
+
+1                       IN      PTR     porta.{{ dns_domain }}.
+10                      IN      PTR     {{ inventory_hostname }}.{{ dns_domain }}.
+{% if dns_also_notify is defined %}
+11                      IN      PTR     {{ hostvars[groups['dns_secondary'][0]]['hostname'] }}.{{ dns_domain }}.
+{% endif %}
+
+; ========================================
+; Static Host PTR Records
+; ========================================
+{% for host in groups['all'] %}
+{% if hostvars[host].dns_static_record is defined and hostvars[host].dns_static_record %}
+{% if hostvars[host].dhcp_reservation is defined %}
+{{ hostvars[host].dhcp_reservation.ip.split('.')[-1] | ljust(24) }}IN      PTR     {{ hostvars[host].hostname }}.{{ dns_domain }}.
+{% endif %}
+{% endif %}
+{% endfor %}
+
+; ========================================
+; Dynamic PTR Records
+; ========================================
+; Managed automatically by DHCP/DDNS

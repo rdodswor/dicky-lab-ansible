@@ -1,0 +1,131 @@
+# DHCP Server Configuration for {{ inventory_hostname }}
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+# Global Options
+option domain-name "{{ dhcp_domain }}";
+option domain-name-servers {{ dhcp_dns_servers | join(', ') }};
+{% if dhcp_ntp_servers is defined %}
+option ntp-servers {{ dhcp_ntp_servers | join(', ') }};
+{% endif %}
+
+default-lease-time {{ dhcp_default_lease_time }};
+max-lease-time {{ dhcp_max_lease_time }};
+
+# This server is authoritative
+{% if dhcp_authoritative %}
+authoritative;
+{% endif %}
+
+# Logging
+log-facility {{ dhcp_log_facility }};
+
+# ========================================
+# Dynamic DNS Configuration
+# ========================================
+{% if ddns_enabled %}
+# Include DDNS key
+include "/etc/dhcp/ddns.key";
+
+ddns-update-style {{ ddns_update_style }};
+ddns-domainname "{{ dhcp_domain }}.";
+ddns-rev-domainname "in-addr.arpa.";
+
+# Allow client FQDN updates
+allow client-updates;
+
+# DNS zones to update (primary DNS server)
+zone {{ dhcp_domain }}. {
+    primary {{ dns_primary }};
+    key {{ ddns_key_name }};
+}
+
+zone {{ dns_reverse_zone }}. {
+    primary {{ dns_primary }};
+    key {{ ddns_key_name }};
+}
+{% else %}
+ddns-update-style none;
+{% endif %}
+
+# ========================================
+# Failover Configuration
+# ========================================
+{% if dhcp_failover_enabled and dhcp_failover_role == 'primary' %}
+failover peer "dhcp-failover" {
+    primary;
+    address {{ dhcp_failover_primary_ip }};
+    port {{ dhcp_failover_port }};
+    peer address {{ dhcp_failover_secondary_ip }};
+    peer port {{ dhcp_failover_peer_port }};
+    max-response-delay {{ dhcp_failover_max_response_delay }};
+    max-unacked-updates {{ dhcp_failover_max_unacked_updates }};
+    mclt {{ dhcp_failover_mclt }};
+    split {{ dhcp_failover_split }};
+    load balance max seconds 3;
+}
+{% elif dhcp_failover_enabled and dhcp_failover_role == 'secondary' %}
+failover peer "dhcp-failover" {
+    secondary;
+    address {{ dhcp_failover_secondary_ip }};
+    port {{ dhcp_failover_port }};
+    peer address {{ dhcp_failover_primary_ip }};
+    peer port {{ dhcp_failover_peer_port }};
+    max-response-delay {{ dhcp_failover_max_response_delay }};
+    max-unacked-updates {{ dhcp_failover_max_unacked_updates }};
+    load balance max seconds 3;
+}
+{% endif %}
+
+# ========================================
+# Subnet Declaration
+# ========================================
+subnet {{ dhcp_subnet }} netmask {{ dhcp_netmask }} {
+{% if dhcp_failover_enabled %}
+    pool {
+        failover peer "dhcp-failover";
+        range {{ dhcp_range_start }} {{ dhcp_range_end }};
+    }
+{% else %}
+    range {{ dhcp_range_start }} {{ dhcp_range_end }};
+{% endif %}
+    
+    option routers {{ dhcp_gateway }};
+    option subnet-mask {{ dhcp_netmask }};
+    option broadcast-address {{ dhcp_broadcast }};
+    
+    # DNS settings
+    option domain-name "{{ dhcp_domain }}";
+    option domain-name-servers {{ dhcp_dns_servers | join(', ') }};
+    
+{% if dhcp_ntp_servers is defined %}
+    # NTP settings
+    option ntp-servers {{ dhcp_ntp_servers | join(', ') }};
+{% endif %}
+}
+
+# ========================================
+# Static Host Reservations
+# ========================================
+{% for host in groups['all'] %}
+{% if hostvars[host].dhcp_reservation is defined %}
+
+# {{ hostvars[host].hostname }}
+host {{ hostvars[host].hostname }} {
+    hardware ethernet {{ hostvars[host].dhcp_reservation.mac }};
+    fixed-address {{ hostvars[host].dhcp_reservation.ip }};
+    option host-name "{{ hostvars[host].hostname }}";
+{% if ddns_enabled %}
+    ddns-hostname "{{ hostvars[host].hostname }}";
+    ddns-domainname "{{ dhcp_domain }}.";
+{% endif %}
+}
+{% endif %}
+{% endfor %}
+
+# ========================================
+# PXE Boot (Optional - for future use)
+# ========================================
+{% if dhcp_next_server is defined %}
+next-server {{ dhcp_next_server }};
+filename "{{ dhcp_filename }}";
+{% endif %}

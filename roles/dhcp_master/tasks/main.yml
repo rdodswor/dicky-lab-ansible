@@ -1,0 +1,151 @@
+---
+# DHCP Master Role Tasks
+
+- name: Install ISC DHCP Server
+  apt:
+    name: "{{ dhcp_packages }}"
+    state: present
+    update_cache: yes
+  tags:
+    - dhcp
+    - packages
+
+- name: Stop DHCP service before configuration
+  service:
+    name: "{{ dhcp_service }}"
+    state: stopped
+  ignore_errors: yes
+  tags:
+    - dhcp
+    - service
+
+- name: Check if this host is also DNS primary
+  set_fact:
+    is_dns_primary: "{{ inventory_hostname in groups['dns_primary'] }}"
+  tags:
+    - dhcp
+    - ddns
+
+- name: Copy DDNS key from local DNS directory (if DNS primary)
+  copy:
+    src: /etc/bind/ddns.key
+    dest: /etc/dhcp/ddns.key
+    owner: root
+    group: root
+    mode: '0640'
+    remote_src: yes
+  when: 
+    - ddns_enabled
+    - is_dns_primary
+  tags:
+    - dhcp
+    - ddns
+
+- name: Fetch DDNS key from primary DNS server (if not DNS primary)
+  block:
+    - name: Fetch key from DNS primary
+      fetch:
+        src: /etc/bind/ddns.key
+        dest: /tmp/ddns.key
+        flat: yes
+      delegate_to: "{{ groups['dns_primary'][0] }}"
+      run_once: yes
+    
+    - name: Copy key to DHCP server
+      copy:
+        src: /tmp/ddns.key
+        dest: /etc/dhcp/ddns.key
+        owner: root
+        group: root
+        mode: '0640'
+  when:
+    - ddns_enabled
+    - not is_dns_primary
+  tags:
+    - dhcp
+    - ddns
+
+- name: Configure DHCP server
+  template:
+    src: dhcpd.conf.j2
+    dest: "{{ dhcp_conf_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+    validate: 'dhcpd -t -cf %s'
+  notify: restart dhcp
+  tags:
+    - dhcp
+    - config
+
+- name: Configure DHCP server interface
+  template:
+    src: isc-dhcp-server.j2
+    dest: "{{ dhcp_defaults_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  notify: restart dhcp
+  tags:
+    - dhcp
+    - config
+
+- name: Ensure DHCP lease directory exists
+  file:
+    path: /var/lib/dhcp
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags:
+    - dhcp
+    - directories
+
+- name: Create empty lease file if it doesn't exist
+  file:
+    path: /var/lib/dhcp/dhcpd.leases
+    state: touch
+    owner: root
+    group: root
+    mode: '0644'
+    modification_time: preserve
+    access_time: preserve
+  tags:
+    - dhcp
+    - leases
+
+- name: Validate DHCP configuration
+  command: dhcpd -t -cf {{ dhcp_conf_file }}
+  changed_when: false
+  tags:
+    - dhcp
+    - validation
+
+- name: Ensure DHCP service is enabled and started
+  service:
+    name: "{{ dhcp_service }}"
+    state: started
+    enabled: yes
+  tags:
+    - dhcp
+    - service
+
+- name: Wait for DHCP service to be ready
+  wait_for:
+    timeout: 10
+  delegate_to: localhost
+  run_once: yes
+  tags:
+    - dhcp
+    - service
+
+- name: Check DHCP is listening on port 67
+  wait_for:
+    port: 67
+    timeout: 5
+  ignore_errors: yes
+  tags:
+    - dhcp
+    - validation

@@ -1,0 +1,45 @@
+---
+# Master playbook for DNS and DHCP infrastructure deployment
+
+- name: Deploy DNS Infrastructure
+  import_playbook: dns.yml
+
+- name: Wait for DNS to stabilize
+  hosts: dns_servers
+  gather_facts: no
+  tasks:
+    - name: Pause for DNS service stabilization
+      pause:
+        seconds: 10
+        prompt: "Waiting for DNS services to stabilize..."
+
+- name: Deploy DHCP Infrastructure
+  import_playbook: dhcp.yml
+
+- name: Final Infrastructure Verification
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "========================================="
+          - "DNS/DHCP Infrastructure Deployment Complete"
+          - "========================================="
+          - ""
+          - "DNS Servers:"
+          - "  Primary: titus (192.168.100.10)"
+          - "  Secondary: claudia (192.168.100.11)"
+          - "  Domain: dicky.lab"
+          - ""
+          - "DHCP Servers:"
+          - "  Primary: titus (192.168.100.10)"
+          - "  Secondary: claudia (192.168.100.11)"
+          - "  Pool: 192.168.100.100-199"
+          - "  Failover: Enabled"
+          - ""
+          - "Next Steps:"
+          - "  1. Test DNS resolution"
+          - "  2. Test DHCP assignments"
+          - "  3. Verify DDNS updates"
+          - "========================================="

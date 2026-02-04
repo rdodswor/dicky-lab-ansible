@@ -1,0 +1,12 @@
+---
+# DNS Secondary Defaults
+
+dns_packages:
+  - bind9
+  - bind9utils
+  - dnsutils
+
+dns_service: named
+dns_conf_dir: /etc/bind
+dns_cache_dir: /var/cache/bind
+dns_log_dir: /var/log/named

@@ -1,0 +1,24 @@
+---
+# DHCP Master Role Defaults
+
+# DHCP packages
+dhcp_packages:
+  - isc-dhcp-server
+
+# Service name
+dhcp_service: isc-dhcp-server
+
+# Configuration file
+dhcp_conf_file: /etc/dhcp/dhcpd.conf
+dhcp_defaults_file: /etc/default/isc-dhcp-server
+
+# Default lease times
+dhcp_default_lease_time: 86400      # 24 hours
+dhcp_max_lease_time: 604800         # 7 days
+
+# Server behavior
+dhcp_authoritative: true
+dhcp_log_facility: local7
+
+# TSIG key name (matches DNS)
+ddns_key_name: "dicky-lab-key"

@@ -1,0 +1,70 @@
+// Named configuration for {{ inventory_hostname }}
+// Managed by Ansible - DO NOT EDIT MANUALLY
+
+options {
+    directory "{{ dns_cache_dir }}";
+
+    // DNS Security
+    dnssec-validation auto;
+{% if dnssec_enabled %}
+    dnssec-enable yes;
+{% else %}
+    dnssec-enable no;
+{% endif %}
+
+    // Listen on IPv4
+    listen-on port 53 { 
+        127.0.0.1;
+        {{ ansible_default_ipv4.address }};
+    };
+
+    // Disable IPv6
+    listen-on-v6 { none; };
+
+    // Allow queries from
+    allow-query {
+{% for network in dns_allow_query %}
+        {{ network }};
+{% endfor %}
+    };
+
+    // Allow recursion from
+    allow-recursion {
+{% for network in dns_allow_recursion %}
+        {{ network }};
+{% endfor %}
+    };
+
+    // Forwarders for external queries
+    forwarders {
+{% for forwarder in dns_forwarders %}
+        {{ forwarder }};
+{% endfor %}
+    };
+
+    forward only;
+    allow-transfer { none; };
+    version "not disclosed";
+    auth-nxdomain no;
+    recursion yes;
+};
+
+// Logging
+logging {
+    channel default_log {
+        file "{{ dns_log_dir }}/default.log" versions 3 size 5m;
+        severity info;
+        print-time yes;
+        print-severity yes;
+        print-category yes;
+    };
+    
+    channel query_log {
+        file "{{ dns_log_dir }}/queries.log" versions 3 size 10m;
+        severity info;
+        print-time yes;
+    };
+    
+    category default { default_log; };
+    category queries { query_log; };
+};

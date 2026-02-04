@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Richard Dodsworth
+  description: Primary DNS server with DDNS support
+  company: Dicky Lab
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - dns
+    - bind9
+
+dependencies:
+  - role: common

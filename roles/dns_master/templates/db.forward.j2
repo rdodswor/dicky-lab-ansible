@@ -1,0 +1,59 @@
+; Forward zone for {{ dns_domain }}
+; Managed by Ansible - DO NOT EDIT MANUALLY
+
+$TTL    {{ dns_default_ttl }}
+@       IN      SOA     {{ inventory_hostname }}.{{ dns_domain }}. {{ dns_admin_email }}. (
+                        {{ dns_serial }}
+                        {{ dns_refresh }}
+                        {{ dns_retry }}
+                        {{ dns_expire }}
+                        {{ dns_negative_ttl }} )
+
+; Name Servers
+@                       IN      NS      {{ inventory_hostname }}.{{ dns_domain }}.
+{% if dns_also_notify is defined %}
+@                       IN      NS      {{ hostvars[groups['dns_secondary'][0]]['hostname'] }}.{{ dns_domain }}.
+{% endif %}
+
+; ========================================
+; Infrastructure Servers (Static IPs)
+; ========================================
+
+porta                   IN      A       192.168.100.1
+{{ inventory_hostname }} IN      A       192.168.100.10
+{% if dns_also_notify is defined %}
+{{ hostvars[groups['dns_secondary'][0]]['hostname'] }}  IN  A  192.168.100.11
+{% endif %}
+
+; ========================================
+; Static Host Records (from inventory)
+; ========================================
+{% for host in groups['all'] %}
+{% if hostvars[host].dns_static_record is defined and hostvars[host].dns_static_record %}
+{% if hostvars[host].dhcp_reservation is defined %}
+{{ hostvars[host].hostname | ljust(24) }}IN      A       {{ hostvars[host].dhcp_reservation.ip }}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+; ========================================
+; DNS Aliases (CNAMEs)
+; ========================================
+ns1                     IN      CNAME   {{ inventory_hostname }}
+{% if dns_also_notify is defined %}
+ns2                     IN      CNAME   {{ hostvars[groups['dns_secondary'][0]]['hostname'] }}
+{% endif %}
+{% if groups['root_ca'] is defined %}
+root-ca                 IN      CNAME   {{ hostvars[groups['root_ca'][0]]['hostname'] }}
+{% endif %}
+{% if groups['intermediate_ca'] is defined %}
+inter-ca                IN      CNAME   {{ hostvars[groups['intermediate_ca'][0]]['hostname'] }}
+{% endif %}
+{% if groups['web_servers'] is defined %}
+www                     IN      CNAME   {{ hostvars[groups['web_servers'][0]]['hostname'] }}
+{% endif %}
+
+; ========================================
+; Dynamic DNS Entries
+; ========================================
+; Managed automatically by DHCP/DDNS
