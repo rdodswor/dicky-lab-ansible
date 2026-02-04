@@ -6,11 +6,6 @@ options {
 
     // DNS Security
     dnssec-validation auto;
-{% if dnssec_enabled %}
-    dnssec-enable yes;
-{% else %}
-    dnssec-enable no;
-{% endif %}
 
     // Listen on IPv4
     listen-on port 53 { 
