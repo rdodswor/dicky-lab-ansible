@@ -27,6 +27,19 @@
     - common
     - packages
 
+- name: Install host-specific packages
+  apt:
+    name: "{{ host_specific_packages }}"
+    state: present
+  when: 
+    - ansible_os_family == "Debian"
+    - host_specific_packages is defined
+  tags:
+    - common
+    - packages
+    - host_specific
+
+
 - name: Remove unwanted packages
   apt:
     name: "{{ unwanted_packages }}"
