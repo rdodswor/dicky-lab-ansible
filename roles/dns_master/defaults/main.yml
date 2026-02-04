@@ -16,5 +16,5 @@ dns_cache_dir: /var/cache/bind
 dns_log_dir: /var/log/named
 
 dns_serial: 2025020401
-dnssec_enabled: false
+dnssec_validation: auto
 ddns_key_name: "dicky-lab-key"

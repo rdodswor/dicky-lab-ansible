@@ -21,7 +21,7 @@ dns_forwarders:
   - 8.8.4.4
 
 # DNSSEC disabled for now
-dnssec_enabled: false
+dnssec_validation: auto
 
 # Access control
 dns_allow_query:
