@@ -1,0 +1,16 @@
+---
+hostname: janus
+role: management
+
+# DHCP reservation (Management, host 1)
+dhcp_reservation:
+  mac: "02:dc:01:01:01:01"
+  ip: 192.168.100.5
+  hostname: janus
+
+dns_static_record: true
+
+host_specific_packages:
+  - ansible
+  - python3-pip
+  - python3-venv

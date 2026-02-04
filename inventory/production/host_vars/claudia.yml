@@ -1,0 +1,19 @@
+---
+hostname: claudia
+role: dns_dhcp_secondary
+
+# MAC address (Core Network Services, host 2)
+interface_mac: "02:dc:03:02:01:01"
+
+# DNS configuration
+dns_role: secondary
+dns_is_primary: false
+dns_primary_server: 192.168.100.10
+
+# DHCP configuration
+dhcp_role: secondary
+dhcp_failover_role: secondary
+dhcp_failover_peer: 192.168.100.10
+
+# Static DNS record
+dns_static_record: true

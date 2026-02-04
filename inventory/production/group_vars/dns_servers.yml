@@ -1,0 +1,47 @@
+---
+# DNS Server Configuration
+
+# Zone information
+dns_domain: dicky.lab
+dns_reverse_zone: 100.168.192.in-addr.arpa
+dns_reverse_network: 192.168.100
+
+# Zone serial (YYYYMMDDNN format)
+dns_serial: 2025020401
+
+# Directories
+dns_conf_dir: /etc/bind
+dns_zone_dir: /var/lib/bind/zones
+dns_cache_dir: /var/cache/bind
+dns_log_dir: /var/log/named
+
+# External forwarders
+dns_forwarders:
+  - 8.8.8.8
+  - 8.8.4.4
+
+# DNSSEC disabled for now
+dnssec_enabled: false
+
+# Access control
+dns_allow_query:
+  - 192.168.100.0/24
+  - localhost
+
+dns_allow_recursion:
+  - 192.168.100.0/24
+  - localhost
+
+# Dynamic DNS settings
+ddns_key_name: "dicky-lab-key"
+ddns_key_algorithm: "hmac-sha256"
+
+# TTL settings
+dns_default_ttl: 604800
+dns_refresh: 604800
+dns_retry: 86400
+dns_expire: 2419200
+dns_negative_ttl: 604800
+
+# SOA contact
+dns_admin_email: "hostmaster.dicky.lab"

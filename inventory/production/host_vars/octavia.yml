@@ -1,0 +1,25 @@
+---
+hostname: octavia
+role: web_server
+
+# DHCP reservation (Web Services, host 1)
+dhcp_reservation:
+  mac: "02:dc:05:01:01:01"
+  ip: 192.168.100.50
+  hostname: octavia
+
+dns_static_record: true
+
+# Web server settings
+web_server_type: apache2
+ssl_enabled: true
+ssl_common_name: octavia.dicky.lab
+ssl_san_names:
+  - octavia.dicky.lab
+  - www.dicky.lab
+web_document_root: /var/www/octavia.dicky.lab/public_html
+
+# Host-specific packages for web server
+host_specific_packages:
+  - apache2
+  - ssl-cert

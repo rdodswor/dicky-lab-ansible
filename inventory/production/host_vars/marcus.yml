@@ -1,0 +1,25 @@
+---
+hostname: marcus
+role: root_ca
+
+# DHCP reservation (PKI, host 1)
+dhcp_reservation:
+  mac: "02:dc:02:01:01:01"
+  ip: 192.168.100.20
+  hostname: marcus
+
+dns_static_record: true
+
+# CA settings (Root CA - top of trust hierarchy)
+ca_type: root
+ca_key_size: 4096
+ca_validity_days: 3650        # 10 years
+pki_root_dir: /etc/pki/root
+
+# Root CA should be offline most of the time
+ca_offline: true
+
+# Host-specific packages for Root CA
+host_specific_packages:
+  - openssl
+  - easy-rsa

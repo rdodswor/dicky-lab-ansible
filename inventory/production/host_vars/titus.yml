@@ -1,0 +1,22 @@
+---
+hostname: titus
+role: dns_dhcp_primary
+
+# MAC address (Core Network Services, host 1)
+interface_mac: "02:dc:03:01:01:01"
+
+# DNS configuration
+dns_role: primary
+dns_is_primary: true
+dns_allow_transfer:
+  - 192.168.100.11
+dns_also_notify:
+  - 192.168.100.11
+
+# DHCP configuration
+dhcp_role: primary
+dhcp_failover_role: primary
+dhcp_failover_peer: 192.168.100.11
+
+# Static DNS record
+dns_static_record: true

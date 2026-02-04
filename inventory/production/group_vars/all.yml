@@ -5,8 +5,8 @@ lab_network: 192.168.100.0/24
 lab_gateway: 192.168.100.1
 
 # DNS settings
-dns_primary: 192.168.100.20
-dns_secondary: 192.168.100.21
+dns_primary: 192.168.100.10
+dns_secondary: 192.168.100.11
 external_dns:
   - 8.8.8.8
   - 8.8.4.4
@@ -25,15 +25,18 @@ timezone: Australia/Adelaide
 common_packages:
   - vim
   - htop
-  - tmux
-  - git
   - curl
   - wget
+  - git
   - net-tools
+  - dnsutils
   - tcpdump
   - rsync
   - tmux
-  - dnsutils
+  - tree
+  - jq
+  - lsof
+  - unattended-upgrades
 
 # Security settings
 ssh_port: 22
