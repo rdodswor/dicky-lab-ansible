@@ -16,6 +16,7 @@
           Current host: {{ inventory_hostname }}
           Groups: {{ group_names }}
         success_msg: "✓ Confirmed: {{ inventory_hostname }} is in root_ca group"
+      tags: always
 
     - name: Check Ansible Vault passphrase is accessible
       ansible.builtin.assert:
@@ -27,6 +28,7 @@
           Ensure 'root_ca_passphrase' is defined in vault-encrypted group_vars/all.yml
           Run with: --ask-vault-pass
         success_msg: "✓ Root CA passphrase configured"
+      tags: always
 
     - name: Display deployment information
       ansible.builtin.debug:
@@ -42,6 +44,7 @@
           - "Key Size: {{ ca_key_size }} bits"
           - "Offline After Setup: {{ ca_offline_after_setup | default(false) }}"
           - "───────────────────────────────────────────────────────────────"
+      tags: always
 
   roles:
     - role: common
@@ -96,3 +99,4 @@
           - ""
           - "📋 Full documentation: {{ ca_base_dir }}/README.md on {{ inventory_hostname }}"
           - "───────────────────────────────────────────────────────────────"
+      tags: always

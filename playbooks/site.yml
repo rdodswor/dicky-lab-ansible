@@ -38,3 +38,4 @@
           - "  3. Deploy CA infrastructure (marcus, tiberius)"
           - "  4. Configure gateway (porta)"
           - "========================================="
+      tags: always
