@@ -23,13 +23,8 @@
       tags: always
 
   roles:
-    - role: dhcp_master
-      when: inventory_hostname in groups['dhcp_primary']
-      tags: dhcp_master
-    
-    - role: dhcp_secondary
-      when: inventory_hostname in groups['dhcp_secondary']
-      tags: dhcp_secondary
+    - role: dhcp
+      tags: dhcp
   
   post_tasks:
     - name: Verify DHCP is running

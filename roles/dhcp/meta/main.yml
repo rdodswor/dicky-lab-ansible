@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Richard Dodsworth
-  description: Primary DHCP server with failover and DDNS
+  description: DHCP server with failover and DDNS support
   company: Dicky Lab
   license: MIT
   min_ansible_version: 2.9

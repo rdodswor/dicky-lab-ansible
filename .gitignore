@@ -7,3 +7,5 @@
 
 .vault_pass
 ~/.vault_pass
+*.swp
+*.swp

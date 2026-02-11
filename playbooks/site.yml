@@ -3,9 +3,15 @@
 
 - name: Deploy Common Configuration
   import_playbook: common.yml
+  tags: [common]
+
+- name: Deploy Network Configuration
+  import_playbook: network_config.yml
+  tags: [network]
 
 - name: Deploy DNS and DHCP Infrastructure
   import_playbook: infrastructure.yml
+  tags: [infrastructure, dns, dhcp]
 
 - name: Complete Deployment Summary
   hosts: localhost
@@ -20,6 +26,7 @@
           - ""
           - "✓ Services Deployed:"
           - "  - Common baseline (all hosts)"
+          - "  - Network Configuration (all hosts)"
           - "  - DNS primary (titus)"
           - "  - DNS secondary (claudia)"
           - "  - DHCP primary (titus)"

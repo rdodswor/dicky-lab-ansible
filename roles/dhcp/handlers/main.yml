@@ -1,5 +1,5 @@
 ---
-# DHCP Master Handlers
+# DHCP Handlers
 
 - name: restart dhcp
   service:

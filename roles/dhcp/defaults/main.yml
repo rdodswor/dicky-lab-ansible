@@ -1,5 +1,5 @@
 ---
-# DHCP Master Role Defaults
+# DHCP Role Defaults
 
 # DHCP packages
 dhcp_packages:

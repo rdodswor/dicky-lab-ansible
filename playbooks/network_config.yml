@@ -1,0 +1,7 @@
+---
+- name: Configure network settings
+  hosts: all
+  become: true
+  roles:
+    - role: network_config
+      tags: [network, network_config]
