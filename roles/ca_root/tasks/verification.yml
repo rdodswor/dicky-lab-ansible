@@ -1,0 +1,115 @@
+---
+# Verify CA certificate and configuration
+
+- name: Check if Root CA certificate exists
+  ansible.builtin.stat:
+    path: "{{ ca_base_dir }}/certs/ca.cert.pem"
+  register: ca_cert_check
+  tags:
+    - verify
+
+- name: Fail if certificate doesn't exist
+  ansible.builtin.fail:
+    msg: "Root CA certificate not found at {{ ca_base_dir }}/certs/ca.cert.pem"
+  when: 
+    - not ca_cert_check.stat.exists
+    - not ansible_check_mode
+  tags:
+    - verify
+
+- name: Skip verification in check mode
+  ansible.builtin.debug:
+    msg: "Skipping verification - running in check mode (files not actually created)"
+  when: ansible_check_mode
+  tags:
+    - verify
+
+- name: Get Root CA certificate subject
+  ansible.builtin.command:
+    cmd: openssl x509 -noout -subject -in {{ ca_base_dir }}/certs/ca.cert.pem
+  register: ca_subject
+  changed_when: false
+  when: not ansible_check_mode
+  tags:
+    - verify
+
+- name: Get Root CA certificate issuer
+  ansible.builtin.command:
+    cmd: openssl x509 -noout -issuer -in {{ ca_base_dir }}/certs/ca.cert.pem
+  register: ca_issuer
+  changed_when: false
+  when: not ansible_check_mode
+  tags:
+    - verify
+
+- name: Get Root CA certificate validity dates
+  ansible.builtin.command:
+    cmd: openssl x509 -noout -dates -in {{ ca_base_dir }}/certs/ca.cert.pem
+  register: ca_dates
+  changed_when: false
+  when: not ansible_check_mode
+  tags:
+    - verify
+
+- name: Get Root CA certificate fingerprint
+  ansible.builtin.command:
+    cmd: openssl x509 -noout -fingerprint -sha256 -in {{ ca_base_dir }}/certs/ca.cert.pem
+  register: ca_fingerprint
+  changed_when: false
+  when: not ansible_check_mode
+  tags:
+    - verify
+
+- name: Verify certificate basic constraints
+  ansible.builtin.command:
+    cmd: openssl x509 -noout -ext basicConstraints,keyUsage -in {{ ca_base_dir }}/certs/ca.cert.pem
+  register: ca_extensions
+  changed_when: false
+  when: not ansible_check_mode
+  tags:
+    - verify
+
+- name: Display verification results
+  ansible.builtin.debug:
+    msg:
+      - "════════════════════════════════════════════════════════════"
+      - "Root CA Verification Results"
+      - "════════════════════════════════════════════════════════════"
+      - "{{ ca_subject.stdout }}"
+      - "{{ ca_issuer.stdout }}"
+      - "{{ ca_dates.stdout }}"
+      - "{{ ca_fingerprint.stdout }}"
+      - "────────────────────────────────────────────────────────────"
+      - "Certificate Extensions:"
+      - "{{ ca_extensions.stdout }}"
+      - "════════════════════════════════════════════════════════════"
+  when: not ansible_check_mode
+  tags:
+    - verify
+
+- name: Verify certificate modulus matches private key
+  ansible.builtin.shell: |
+    set -e
+    CERT_MOD=$(openssl x509 -noout -modulus -in {{ ca_base_dir }}/certs/ca.cert.pem | openssl md5)
+    KEY_MOD=$(openssl rsa -noout -modulus -in {{ ca_base_dir }}/private/ca.key.pem -passin pass:{{ lookup('ansible.builtin.vars', ca_passphrase_vault_key) }} 2>/dev/null | openssl md5)
+    if [ "$CERT_MOD" = "$KEY_MOD" ]; then
+      echo "✓ MATCH: Certificate and private key are paired correctly"
+      exit 0
+    else
+      echo "✗ MISMATCH: Certificate and private key do NOT match!"
+      exit 1
+    fi
+  register: modulus_check
+  changed_when: false
+  no_log: true
+  failed_when: modulus_check.rc != 0
+  when: not ansible_check_mode
+  tags:
+    - verify
+
+- name: Display modulus verification result
+  ansible.builtin.debug:
+    msg: "{{ modulus_check.stdout }}"
+  when: not ansible_check_mode
+  tags:
+    - verify

@@ -1,0 +1,46 @@
+---
+# Default variables for Root CA role
+
+# CA Directory Structure
+ca_base_dir: "/root/ca"
+ca_subdirs:
+  - certs
+  - crl
+  - newcerts
+  - private
+  - csr
+
+# CA Certificate Details
+ca_key_size: 4096
+ca_cert_validity_days: 7300
+ca_key_cipher: "aes256"
+
+# Distinguished Name defaults
+ca_country: "AU"
+ca_state: "South Australia"
+ca_locality: "Adelaide"
+ca_organization: "Dicky Lab"
+ca_organizational_unit: "IT Infrastructure"
+ca_common_name: "Dicky Lab Root CA"
+ca_email: "[email protected]"
+
+# Certificate Revocation List
+ca_crl_days: 30
+
+# Intermediate CA validity
+intermediate_cert_validity_days: 3650
+
+# Security Settings
+ca_private_key_mode: "0400"
+ca_cert_mode: "0444"
+ca_config_mode: "0644"
+ca_private_dir_mode: "0700"
+ca_public_dir_mode: "0755"
+
+# Passphrase handling
+ca_passphrase_vault_key: "root_ca_passphrase"
+
+# Backup settings
+ca_backup_enabled: true
+ca_backup_dir: "/var/backups/ca"
+

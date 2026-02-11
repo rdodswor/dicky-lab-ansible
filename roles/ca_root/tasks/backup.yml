@@ -1,0 +1,56 @@
+---
+# Create encrypted backup of CA
+
+- name: Create backup directory
+  ansible.builtin.file:
+    path: "{{ ca_backup_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  tags:
+    - backup
+
+- name: Create timestamped CA backup archive
+  community.general.archive:
+    path: "{{ ca_base_dir }}"
+    dest: "{{ ca_backup_dir }}/root-ca-backup-{{ ansible_date_time.iso8601_basic_short }}.tar.gz"
+    format: gz
+    owner: root
+    group: root
+    mode: "0600"
+  tags:
+    - backup
+
+- name: Find all backup files
+  ansible.builtin.find:
+    paths: "{{ ca_backup_dir }}"
+    patterns: "root-ca-backup-*.tar.gz"
+    age_stamp: mtime
+  register: backup_files
+  tags:
+    - backup
+
+- name: Display backup information
+  ansible.builtin.debug:
+    msg:
+      - "Backup created successfully"
+      - "Location: {{ ca_backup_dir }}"
+      - "Latest backup: {{ backup_files.files | sort(attribute='mtime', reverse=true) | map(attribute='path') | first }}"
+      - "Total backups: {{ backup_files.matched }}"
+  when: backup_files.matched > 0
+  tags:
+    - backup
+
+- name: Remove old backups (keep last 5)
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ backup_files.files | sort(attribute='mtime', reverse=true) | list }}"
+  when: 
+    - backup_files.matched > 5
+    - loop.index0 >= 5
+  loop_control:
+    extended: true
+  tags:
+    - backup

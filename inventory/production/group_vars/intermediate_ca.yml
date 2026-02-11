@@ -1,0 +1,11 @@
+---
+# Variables specific to Intermediate CA servers (tiberius)
+
+# Intermediate CA gets 10 year validity
+ca_cert_validity_days: 3650
+
+# Intermediate CA stays online
+ca_offline_after_setup: false
+
+# Intermediate CA role identifier
+ca_type: intermediate

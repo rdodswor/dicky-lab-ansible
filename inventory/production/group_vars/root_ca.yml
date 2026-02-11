@@ -1,0 +1,11 @@
+---
+# Variables specific to Root CA servers (marcus)
+
+# Root CA gets 20 year validity
+ca_cert_validity_days: 7300
+
+# Root CA should be taken offline after setup
+ca_offline_after_setup: true
+
+# Root CA role identifier
+ca_type: root

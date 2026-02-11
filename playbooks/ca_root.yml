@@ -1,0 +1,98 @@
+---
+- name: Setup Root Certificate Authority
+  hosts: root_ca
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Verify target is a root CA server
+      ansible.builtin.assert:
+        that:
+          - "'root_ca' in group_names"
+          - ca_role is defined
+          - ca_role == 'root'
+        fail_msg: |
+          ❌ This playbook must run on root CA servers.
+          Current host: {{ inventory_hostname }}
+          Groups: {{ group_names }}
+        success_msg: "✓ Confirmed: {{ inventory_hostname }} is in root_ca group"
+
+    - name: Check Ansible Vault passphrase is accessible
+      ansible.builtin.assert:
+        that:
+          - root_ca_passphrase is defined
+          - root_ca_passphrase | length > 0
+        fail_msg: |
+          ❌ Root CA passphrase not found!
+          Ensure 'root_ca_passphrase' is defined in vault-encrypted group_vars/all.yml
+          Run with: --ask-vault-pass
+        success_msg: "✓ Root CA passphrase configured"
+
+    - name: Display deployment information
+      ansible.builtin.debug:
+        msg:
+          - "╔═══════════════════════════════════════════════════════════════╗"
+          - "║         Root Certificate Authority Deployment                 ║"
+          - "╚═══════════════════════════════════════════════════════════════╝"
+          - "Target Host: {{ inventory_hostname }} ({{ ansible_host }})"
+          - "CA Name: {{ ca_common_name }}"
+          - "Organization: {{ ca_organization }}"
+          - "Domain: {{ lab_domain }}"
+          - "Validity: {{ (ca_cert_validity_days / 365) | round(1) }} years"
+          - "Key Size: {{ ca_key_size }} bits"
+          - "Offline After Setup: {{ ca_offline_after_setup | default(false) }}"
+          - "───────────────────────────────────────────────────────────────"
+
+  roles:
+    - role: common
+      tags:
+        - common
+    
+    - role: ca_root
+      tags:
+        - ca_root
+
+  post_tasks:
+    - name: Create local certificates directory
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../files/certificates"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      become: false
+      run_once: true
+      tags:
+        - fetch
+
+    - name: Fetch Root CA certificate to control node
+      ansible.builtin.fetch:
+        src: /tmp/dicky-lab-root-ca.crt
+        dest: "{{ playbook_dir }}/../files/certificates/{{ inventory_hostname }}-root-ca.crt"
+        flat: true
+      tags:
+        - fetch
+
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg:
+          - "╔═══════════════════════════════════════════════════════════════╗"
+          - "║             Root CA Setup Complete!                           ║"
+          - "╚═══════════════════════════════════════════════════════════════╝"
+          - ""
+          - "✓ Root CA private key generated and secured"
+          - "✓ Root CA certificate created ({{ (ca_cert_validity_days / 365) | round(1) }} year validity)"
+          - "✓ OpenSSL configuration deployed to {{ ca_base_dir }}"
+          - "✓ Backup created in {{ ca_backup_dir }}"
+          - "✓ Certificate fetched to: files/certificates/{{ inventory_hostname }}-root-ca.crt"
+          - ""
+          - "Next Steps:"
+          - "1. Review certificate details on {{ inventory_hostname }}:"
+          - "   ssh {{ inventory_hostname }} 'sudo openssl x509 -noout -text -in {{ ca_base_dir }}/certs/ca.cert.pem'"
+          - ""
+          - "2. Setup Intermediate CA on tiberius:"
+          - "   ansible-playbook playbooks/ca_intermediate.yml --ask-vault-pass"
+          - ""
+          - "3. After Intermediate CA setup, power down {{ inventory_hostname }} for offline storage"
+          - ""
+          - "📋 Full documentation: {{ ca_base_dir }}/README.md on {{ inventory_hostname }}"
+          - "───────────────────────────────────────────────────────────────"

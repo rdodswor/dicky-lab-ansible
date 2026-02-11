@@ -10,16 +10,23 @@ dhcp_reservation:
 
 dns_static_record: true
 
-# CA settings (Intermediate CA - signs end-entity certs)
-ca_type: intermediate
-ca_key_size: 4096
-ca_validity_days: 1825        # 5 years
-pki_intermediate_dir: /etc/pki/intermediate
-
-# Root CA that signs this intermediate
-root_ca_server: marcus
-root_ca_ip: 192.168.100.20
-
 # Host-specific packages for Intermediate CA
 host_specific_packages:
   - openssl
+  - easy-rsa
+  - libssl-dev
+  - ca-certificates
+  - gpg
+  - gnupg2
+
+# CA Role Configuration (for ca_intermediate role - future)
+ca_role: intermediate
+ca_common_name: "{{ lab_name | replace('_', ' ') | title }} Intermediate CA"
+
+# Root CA information (for signing CSR)
+root_ca_server: marcus
+root_ca_ip: 192.168.100.20
+
+# Override certificate validity if needed (default is 3650 from group_vars/intermediate_ca.yml)
+# ca_cert_validity_days: 3650
+

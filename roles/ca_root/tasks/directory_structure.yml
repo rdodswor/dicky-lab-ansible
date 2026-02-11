@@ -1,0 +1,67 @@
+---
+# Create CA directory structure
+
+- name: Create base CA directory
+  ansible.builtin.file:
+    path: "{{ ca_base_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ ca_public_dir_mode }}"
+  tags:
+    - directories
+
+- name: Create CA subdirectories
+  ansible.builtin.file:
+    path: "{{ ca_base_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ ca_public_dir_mode }}"
+  loop: "{{ ca_subdirs }}"
+  tags:
+    - directories
+
+- name: Secure private directory with restrictive permissions
+  ansible.builtin.file:
+    path: "{{ ca_base_dir }}/private"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ ca_private_dir_mode }}"
+  tags:
+    - directories
+
+- name: Create CA database file
+  ansible.builtin.file:
+    path: "{{ ca_base_dir }}/index.txt"
+    state: touch
+    owner: root
+    group: root
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+  tags:
+    - directories
+
+- name: Initialize serial number file
+  ansible.builtin.copy:
+    content: "1000\n"
+    dest: "{{ ca_base_dir }}/serial"
+    owner: root
+    group: root
+    mode: "0644"
+    force: false
+  tags:
+    - directories
+
+- name: Initialize CRL number file
+  ansible.builtin.copy:
+    content: "1000\n"
+    dest: "{{ ca_base_dir }}/crlnumber"
+    owner: root
+    group: root
+    mode: "0644"
+    force: false
+  tags:
+    - directories

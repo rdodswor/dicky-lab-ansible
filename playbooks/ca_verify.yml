@@ -1,0 +1,20 @@
+---
+- name: Verify Root Certificate Authority
+  hosts: root_ca
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Display verification target
+      ansible.builtin.debug:
+        msg:
+          - "Verifying Root CA on: {{ inventory_hostname }}"
+          - "CA Name: {{ ca_common_name }}"
+          - "CA Base: {{ ca_base_dir }}"
+
+    - name: Run verification tasks only
+      ansible.builtin.include_role:
+        name: ca_root
+        tasks_from: verification
+      tags:
+        - always

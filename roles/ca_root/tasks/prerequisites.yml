@@ -1,0 +1,41 @@
+---
+# Install required packages and configure base system
+
+# Packages are installed by common role via host_specific_packages
+# Defined in host_vars/marcus.yml and host_vars/tiberius.yml
+
+- name: Ensure firewall allows SSH
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+  tags:
+    - firewall
+
+- name: Configure firewall default policies
+  community.general.ufw:
+    policy: "{{ item.policy }}"
+    direction: "{{ item.direction }}"
+  loop:
+    - { direction: 'incoming', policy: 'deny' }
+    - { direction: 'outgoing', policy: 'allow' }
+  tags:
+    - firewall
+
+- name: Enable firewall
+  community.general.ufw:
+    state: enabled
+  tags:
+    - firewall
+
+- name: Disable unnecessary services for CA server
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop:
+    - bluetooth.service
+    - cups.service
+  failed_when: false
+  tags:
+    - services

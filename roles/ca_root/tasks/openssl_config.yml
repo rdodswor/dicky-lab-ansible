@@ -1,0 +1,24 @@
+---
+# Deploy OpenSSL configuration
+
+- name: Deploy OpenSSL configuration from template
+  ansible.builtin.template:
+    src: openssl.cnf.j2
+    dest: "{{ ca_base_dir }}/openssl.cnf"
+    owner: root
+    group: root
+    mode: "{{ ca_config_mode }}"
+    backup: true
+  tags:
+    - config
+
+- name: Deploy CA documentation
+  ansible.builtin.template:
+    src: README.md.j2
+    dest: "{{ ca_base_dir }}/README.md"
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - config
+    - documentation

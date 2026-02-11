@@ -1,0 +1,255 @@
+# {{ ca_common_name }}
+
+**Created:** {{ ansible_date_time.date }} {{ ansible_date_time.time }} {{ ansible_date_time.tz }}
+**Deployed by:** Ansible from {{ ansible_user_id }}@{{ ansible_hostname }}
+**Target Host:** {{ inventory_hostname }} ({{ ansible_fqdn }})
+**Validity:** {{ ca_cert_validity_days }} days ({{ (ca_cert_validity_days / 365) | round(1) }} years)
+
+---
+
+## Certificate Details
+
+| Field | Value |
+|-------|-------|
+| **Common Name** | {{ ca_common_name }} |
+| **Organization** | {{ ca_organization }} |
+| **Organizational Unit** | {{ ca_organizational_unit }} |
+| **Country** | {{ ca_country }} |
+| **State/Province** | {{ ca_state }} |
+| **Locality** | {{ ca_locality }} |
+| **Email** | {{ ca_email }} |
+| **Key Size** | {{ ca_key_size }} bits |
+| **Signature Algorithm** | SHA-256 |
+
+---
+
+## File Locations
+
+### Critical Files
+- **Private Key:** `{{ ca_base_dir }}/private/ca.key.pem` ({{ ca_key_cipher }} encrypted)
+- **Certificate:** `{{ ca_base_dir }}/certs/ca.cert.pem`
+- **Configuration:** `{{ ca_base_dir }}/openssl.cnf`
+
+### Database Files
+- **Certificate Database:** `{{ ca_base_dir }}/index.txt`
+- **Serial Number:** `{{ ca_base_dir }}/serial`
+- **CRL Number:** `{{ ca_base_dir }}/crlnumber`
+
+### Directories
+- **Issued Certificates:** `{{ ca_base_dir }}/certs/`
+- **Certificate Revocation Lists:** `{{ ca_base_dir }}/crl/`
+- **Certificate Signing Requests:** `{{ ca_base_dir }}/csr/`
+- **Private Keys:** `{{ ca_base_dir }}/private/` (mode: {{ ca_private_dir_mode }})
+
+---
+
+## Security Information
+
+### Passphrase Protection
+The Root CA private key is protected with a passphrase stored in Ansible Vault.
+
+**Vault variable:** `{{ ca_passphrase_vault_key }}`
+
+Access to this passphrase is controlled through:
+- Ansible inventory encryption
+- Vault password (stored securely by administrator)
+
+### Permissions
+
+| Path | Owner | Group | Mode |
+|------|-------|-------|------|
+| Private keys | root | root | {{ ca_private_key_mode }} |
+| Certificates | root | root | {{ ca_cert_mode }} |
+| Config files | root | root | {{ ca_config_mode }} |
+| Private directory | root | root | {{ ca_private_dir_mode }} |
+
+---
+
+## Purpose & Architecture
+
+This is the **Root CA** for {{ lab_name | replace('_', ' ') | title }} internal infrastructure. It serves as the trust anchor for the entire PKI hierarchy.
+
+**Critical Security Principle:** This Root CA is used **exclusively** to sign intermediate CA certificates. It should **never** directly issue server, client, or user certificates.
+
+### PKI Hierarchy
+```
+{{ ca_common_name }} (Marcus)
+└── {{ lab_name | replace('_', ' ') | title }} Intermediate CA (Tiberius)
+    ├── Web Servers (e.g., Octavia)
+    ├── Internal Services
+    └── Client Certificates
+```
+
+---
+
+## Operational Procedures
+
+### Signing an Intermediate CA Certificate
+
+**Step 1: Boot Marcus** (if powered down for offline storage)
+
+**Step 2: Receive CSR from intermediate CA**
+```bash
+# Transfer CSR to marcus
+scp tiberius:/root/ca/intermediate.csr.pem /root/ca/csr/
+```
+
+**Step 3: Verify CSR contents**
+```bash
+openssl req -text -noout -verify -in /root/ca/csr/intermediate.csr.pem
+```
+
+**Step 4: Sign the certificate**
+```bash
+cd {{ ca_base_dir }}
+openssl ca -config openssl.cnf \
+  -extensions v3_intermediate_ca \
+  -days {{ intermediate_cert_validity_days }} \
+  -notext -md sha256 \
+  -in csr/intermediate.csr.pem \
+  -out certs/intermediate.cert.pem
+```
+
+**Step 5: Verify the signed certificate**
+```bash
+openssl x509 -noout -text -in {{ ca_base_dir }}/certs/intermediate.cert.pem
+openssl verify -CAfile {{ ca_base_dir }}/certs/ca.cert.pem {{ ca_base_dir }}/certs/intermediate.cert.pem
+```
+
+**Step 6: Transfer to intermediate CA**
+```bash
+scp {{ ca_base_dir }}/certs/intermediate.cert.pem tiberius:/root/ca/
+```
+
+**Step 7: Power down Marcus** (return to offline storage)
+
+---
+
+## Backup & Recovery
+
+### Backup Locations
+
+Automated backups stored in: `{{ ca_backup_dir }}`
+
+Backup schedule:
+- Ansible playbook execution
+- Manual backup before signing operations
+- After any certificate database modifications
+
+### Manual Backup
+```bash
+cd {{ ca_base_dir }}
+tar -czf /tmp/root-ca-backup-$(date +%Y%m%d-%H%M%S).tar.gz .
+# Transfer to secure offline storage
+```
+
+### Recovery Procedure
+```bash
+# Extract backup to CA directory
+tar -xzf root-ca-backup-TIMESTAMP.tar.gz -C {{ ca_base_dir }}
+
+# Verify permissions
+chmod {{ ca_private_dir_mode }} {{ ca_base_dir }}/private
+chmod {{ ca_private_key_mode }} {{ ca_base_dir }}/private/*.pem
+```
+
+---
+
+## Ansible Automation
+
+### Deployed by
+
+- **Role:** `ca_root`
+- **Playbook:** `playbooks/ca_root.yml`
+- **Inventory:** `inventory/production/hosts.yml`
+
+### Rebuild from scratch
+```bash
+cd ~/ansible
+ansible-playbook playbooks/ca_root.yml --limit marcus --ask-vault-pass
+```
+
+### Verify only (no changes)
+```bash
+ansible-playbook playbooks/ca_root.yml --limit marcus --tags verify --ask-vault-pass
+```
+
+### Run specific tasks
+```bash
+# Directory structure only
+ansible-playbook playbooks/ca_root.yml --limit marcus --tags directory_structure --ask-vault-pass
+
+# Generate CA only (if not exists)
+ansible-playbook playbooks/ca_root.yml --limit marcus --tags generate_ca --ask-vault-pass
+```
+
+---
+
+## Certificate Signing Log
+
+Manually update this table when signing certificates:
+
+| Date | Certificate Type | Common Name | Serial | Validity | Notes |
+|------|-----------------|-------------|--------|----------|-------|
+| YYYY-MM-DD | Intermediate CA | {{ lab_name | replace('_', ' ') | title }} Intermediate CA | 1000 | 10 years | Tiberius |
+| | | | | | |
+
+---
+
+## Security Notes
+
+{% if ca_offline_after_setup | default(false) %}
+### Offline Storage
+
+**IMPORTANT:** This Root CA should be powered down and stored offline after:
+- Initial setup complete
+- Intermediate CA certificate signed
+- Any emergency re-keying operations
+
+Boot marcus only when:
+- Signing new intermediate CA certificates
+- Renewing expired intermediate CA certificates
+- Revoking compromised intermediate CA certificates
+- Performing CA key rotation (rare event)
+{% endif %}
+
+### Compromise Response
+
+If this Root CA is compromised:
+
+1. **Immediately revoke** all issued intermediate certificates
+2. **Notify all stakeholders** using certificates from this CA
+3. **Generate new Root CA** with different key material
+4. **Re-issue all intermediate certificates** from new Root CA
+5. **Distribute new Root CA certificate** to all trust stores
+
+---
+
+## Monitoring & Maintenance
+
+### Certificate Expiration
+
+- **Root CA expires:** {{ ansible_date_time.date | default('UNKNOWN') }} + {{ ca_cert_validity_days }} days
+- **Check expiration:** `openssl x509 -noout -enddate -in {{ ca_base_dir }}/certs/ca.cert.pem`
+
+### Database Integrity
+```bash
+# Check certificate database
+cat {{ ca_base_dir }}/index.txt
+
+# Check next serial number
+cat {{ ca_base_dir }}/serial
+```
+
+---
+
+## References
+
+- OpenSSL CA documentation: https://www.openssl.org/docs/manmaster/man1/ca.html
+- {{ lab_name | replace('_', ' ') | title }} Documentation: [Add your wiki URL]
+- Ansible Automation: `~/ansible/roles/ca_root/`
+
+---
+
+**Last Updated:** {{ ansible_date_time.iso8601 }}  
+**Generated by:** Ansible role `ca_root`

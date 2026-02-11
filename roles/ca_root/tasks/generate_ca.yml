@@ -1,0 +1,95 @@
+---
+# Generate Root CA private key and certificate
+
+- name: Check if Root CA private key exists
+  ansible.builtin.stat:
+    path: "{{ ca_base_dir }}/private/ca.key.pem"
+  register: ca_private_key
+  tags:
+    - generate
+
+- name: Check if Root CA certificate exists
+  ansible.builtin.stat:
+    path: "{{ ca_base_dir }}/certs/ca.cert.pem"
+  register: ca_certificate
+  tags:
+    - generate
+
+- name: Display warning if CA already exists
+  ansible.builtin.debug:
+    msg: 
+      - "⚠️  WARNING: Root CA already exists on {{ inventory_hostname }}"
+      - "Private key: {{ ca_private_key.stat.exists | ternary('EXISTS', 'MISSING') }}"
+      - "Certificate: {{ ca_certificate.stat.exists | ternary('EXISTS', 'MISSING') }}"
+      - "Skipping generation to prevent overwriting existing CA"
+  when: ca_private_key.stat.exists or ca_certificate.stat.exists
+  tags:
+    - generate
+
+- name: Generate Root CA private key with passphrase
+  ansible.builtin.command:
+    cmd: >
+      openssl genrsa -{{ ca_key_cipher }}
+      -out {{ ca_base_dir }}/private/ca.key.pem
+      -passout pass:{{ lookup('ansible.builtin.vars', ca_passphrase_vault_key) }}
+      {{ ca_key_size }}
+    creates: "{{ ca_base_dir }}/private/ca.key.pem"
+  no_log: true
+  when: not ca_private_key.stat.exists
+  tags:
+    - generate
+    - generate_key
+
+- name: Set restrictive permissions on private key
+  ansible.builtin.file:
+    path: "{{ ca_base_dir }}/private/ca.key.pem"
+    owner: root
+    group: root
+    mode: "{{ ca_private_key_mode }}"
+  when: 
+    - ca_private_key.stat.exists or not ca_private_key.stat.exists
+    - not ansible_check_mode
+  tags:
+    - generate
+    - generate_key
+
+- name: Generate Root CA self-signed certificate
+  ansible.builtin.command:
+    cmd: >
+      openssl req -config {{ ca_base_dir }}/openssl.cnf
+      -key {{ ca_base_dir }}/private/ca.key.pem
+      -new -x509 -days {{ ca_cert_validity_days }} -sha256 -extensions v3_ca
+      -out {{ ca_base_dir }}/certs/ca.cert.pem
+      -passin pass:{{ lookup('ansible.builtin.vars', ca_passphrase_vault_key) }}
+      -subj "/C={{ ca_country }}/ST={{ ca_state }}/L={{ ca_locality }}/O={{ ca_organization }}/OU={{ ca_organizational_unit }}/CN={{ ca_common_name }}/emailAddress={{ ca_email }}"
+    creates: "{{ ca_base_dir }}/certs/ca.cert.pem"
+  no_log: true
+  when: not ca_certificate.stat.exists
+  tags:
+    - generate
+    - generate_cert
+
+- name: Set public permissions on CA certificate
+  ansible.builtin.file:
+    path: "{{ ca_base_dir }}/certs/ca.cert.pem"
+    owner: root
+    group: root
+    mode: "{{ ca_cert_mode }}"
+  when: 
+    - ca_certificate.stat.exists or not ca_certificate.stat.exists
+    - not ansible_check_mode
+  tags:
+    - generate
+    - generate_cert
+
+- name: Export Root CA certificate to temp location
+  ansible.builtin.copy:
+    src: "{{ ca_base_dir }}/certs/ca.cert.pem"
+    dest: "/tmp/dicky-lab-root-ca.crt"
+    owner: root
+    group: root
+    mode: "0644"
+    remote_src: true
+  tags:
+    - generate
+    - export

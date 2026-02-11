@@ -1,25 +1,40 @@
 ---
+# Marcus - Root Certificate Authority
+
+# Basic identification
 hostname: marcus
 role: root_ca
 
-# DHCP reservation (PKI, host 1)
-dhcp_reservation:
-  mac: "02:dc:02:01:01:01"
-  ip: 192.168.100.20
-  hostname: marcus
+# MAC address (PKI Infrastructure, host 1)
+interface_mac: "02:dc:02:01:01:01"
 
+# Network configuration
+interfaces:
+  - name: enp0s8
+    type: static
+    address: 192.168.100.20/24
+    gateway: 192.168.100.1
+    dns:
+      - 192.168.100.10
+      - 192.168.100.11
+  - name: enp0s9
+    type: dhcp
+
+# DNS configuration
 dns_static_record: true
-
-# CA settings (Root CA - top of trust hierarchy)
-ca_type: root
-ca_key_size: 4096
-ca_validity_days: 3650        # 10 years
-pki_root_dir: /etc/pki/root
-
-# Root CA should be offline most of the time
-ca_offline: true
 
 # Host-specific packages for Root CA
 host_specific_packages:
   - openssl
   - easy-rsa
+  - libssl-dev
+  - ca-certificates
+  - gpg
+  - gnupg2
+
+# CA Role Configuration (for ca_root role)
+ca_role: root
+ca_common_name: "{{ lab_name | replace('_', ' ') | title }} Root CA"
+
+# Override certificate validity if needed (default is 7300 from group_vars/root_ca.yml)
+# ca_cert_validity_days: 7300

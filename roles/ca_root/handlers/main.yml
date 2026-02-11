@@ -1,0 +1,7 @@
+---
+# Handlers for CA root role
+
+- name: update ca certificates
+  ansible.builtin.command:
+    cmd: update-ca-certificates
+  changed_when: false

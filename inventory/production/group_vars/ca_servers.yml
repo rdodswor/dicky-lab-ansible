@@ -1,0 +1,36 @@
+---
+# Common variables for all CA servers (marcus and tiberius)
+
+# CA Base Configuration
+ca_base_dir: "/root/ca"
+ca_key_size: 4096
+ca_key_cipher: "aes256"
+
+# Distinguished Name defaults
+ca_country: "AU"
+ca_state: "South Australia"
+ca_locality: "Adelaide"
+ca_organization: "{{ lab_name | replace('_', ' ') | title }}"
+ca_organizational_unit: "IT Infrastructure"
+ca_email: "ca-admin@{{ lab_domain }}"
+
+# CRL configuration
+ca_crl_days: 30
+
+# Intermediate CA default validity
+intermediate_cert_validity_days: 3650
+
+# File permissions
+ca_private_key_mode: "0400"
+ca_cert_mode: "0444"
+ca_config_mode: "0644"
+ca_private_dir_mode: "0700"
+ca_public_dir_mode: "0755"
+
+# Backup settings
+ca_backup_enabled: true
+ca_backup_dir: "/var/backups/ca"
+
+# Firewall
+firewall_allowed_ports:
+  - "{{ ssh_port }}/tcp"
