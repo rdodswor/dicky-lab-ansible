@@ -20,20 +20,20 @@
       service:
         name: chrony
       register: chrony_status
-      tags: always
+      tags: verify
 
     - name: Display chrony status
       debug:
         msg: "Chrony service is {{ chrony_status.status.ActiveState }}"
-      tags: always
+      tags: verify
 
     - name: Get current time synchronization status
       command: timedatectl status
       register: timedatectl_output
       changed_when: false
-      tags: always
+      tags: verify
 
     - name: Display time sync status
       debug:
         var: timedatectl_output.stdout_lines
-      tags: always
+      tags: verify

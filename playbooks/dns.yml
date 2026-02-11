@@ -39,21 +39,21 @@
         name: named
         state: started
       register: dns_status
-      tags: always
-    
+      tags: verify
+
     - name: Display DNS service status
       debug:
         msg: "✓ BIND9 service is {{ dns_status.status.ActiveState }}"
-      tags: always
-    
+      tags: verify
+
     - name: Test DNS resolution (self)
       command: dig @localhost {{ inventory_hostname }}.{{ dns_domain }} +short
       register: dig_result
       changed_when: false
       failed_when: false
-      tags: always
-    
+      tags: verify
+
     - name: Display DNS test result
       debug:
         msg: "DNS resolution test: {{ dig_result.stdout | default('FAILED - Check logs') }}"
-      tags: always
+      tags: verify

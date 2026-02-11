@@ -32,22 +32,22 @@
         name: isc-dhcp-server
         state: started
       register: dhcp_status
-      tags: always
-    
+      tags: verify
+
     - name: Display DHCP service status
       debug:
         msg: "✓ DHCP service is {{ dhcp_status.status.ActiveState }}"
-      tags: always
-    
+      tags: verify
+
     - name: Check DHCP configuration
       command: dhcpd -t -cf /etc/dhcp/dhcpd.conf
       register: dhcp_test
       changed_when: false
       failed_when: dhcp_test.rc != 0
-      tags: always
-    
+      tags: verify
+
     - name: Display configuration validation
       debug:
         msg: "✓ DHCP configuration is valid"
       when: dhcp_test.rc == 0
-      tags: always
+      tags: verify
