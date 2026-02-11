@@ -2,12 +2,27 @@
 hostname: tiberius
 role: intermediate_ca
 
-# DHCP reservation (PKI, host 2)
-dhcp_reservation:
-  mac: "02:dc:02:02:01:01"
-  ip: 192.168.100.21
-  hostname: tiberius
+# MAC address (PKI Infrastructure, host 2)
+interface_mac: "02:dc:02:02:01:01"
 
+# Network configuration
+interfaces:
+  - name: enp0s8
+    type: static
+    address: 192.168.100.21/24
+    gateway: 192.168.100.1
+    dns:
+      - 192.168.100.10
+      - 192.168.100.11
+  - name: enp0s9
+    type: dhcp
+    dhcp4_overrides:
+      use_routes: false
+      use_dns: false
+    dhcp6: true
+    dhcp6_overrides:
+      use_routes: false
+      use_dns: false
 dns_static_record: true
 
 # Host-specific packages for Intermediate CA

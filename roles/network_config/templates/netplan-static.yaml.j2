@@ -22,12 +22,30 @@ network:
           - {{ dns }}
 {% endfor %}
         search:
-          - {{ dns_domain }}
+          - {{ lab_domain }}
 {% endif %}
 {% elif interface.type == 'dhcp' %}
       dhcp4: true
+{% if interface.dhcp4_overrides is defined %}
+      dhcp4-overrides:
+{% if interface.dhcp4_overrides.use_routes is defined %}
+        use-routes: {{ interface.dhcp4_overrides.use_routes | lower }}
+{% endif %}
+{% if interface.dhcp4_overrides.use_dns is defined %}
+        use-dns: {{ interface.dhcp4_overrides.use_dns | lower }}
+{% endif %}
+{% endif %}
 {% if interface.dhcp6 is defined and interface.dhcp6 %}
       dhcp6: true
+{% if interface.dhcp6_overrides is defined %}
+      dhcp6-overrides:
+{% if interface.dhcp6_overrides.use_routes is defined %}
+        use-routes: {{ interface.dhcp6_overrides.use_routes | lower }}
+{% endif %}
+{% if interface.dhcp6_overrides.use_dns is defined %}
+        use-dns: {{ interface.dhcp6_overrides.use_dns | lower }}
+{% endif %}
+{% endif %}
 {% endif %}
 {% endif %}
 {% endfor %}

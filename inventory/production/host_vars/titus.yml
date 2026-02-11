@@ -16,6 +16,13 @@ interfaces:
       - 192.168.100.11      # Fallback to claudia
   - name: enp0s9
     type: dhcp              # OOB management interface
+    dhcp4_overrides:
+      use_routes: false
+      use_dns: false
+    dhcp6: true
+    dhcp6_overrides:
+      use_routes: false
+      use_dns: false
 
 # DNS configuration
 dns_role: master            # Changed from 'primary' to match role conditionals

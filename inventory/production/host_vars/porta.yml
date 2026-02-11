@@ -17,9 +17,21 @@ interfaces:
     
   - name: enp0s9
     type: dhcp
-    
+    dhcp4_overrides:
+      use_dns: false
+    dhcp6: true
+    dhcp6_overrides:
+      use_dns: false
+
   - name: enp0s10
     type: dhcp
+    dhcp4_overrides:
+      use_routes: false
+      use_dns: false
+    dhcp6: true
+    dhcp6_overrides:
+      use_routes: false
+      use_dns: false
 
 # DNS configuration
 dns_static_record: true
