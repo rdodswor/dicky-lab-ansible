@@ -1,0 +1,9 @@
+---
+# Network Configuration Handlers
+
+- name: Apply netplan safely
+  shell: "sleep 2 && netplan apply"
+  async: 1
+  poll: 0
+  changed_when: true
+  ignore_errors: yes

@@ -1,0 +1,25 @@
+---
+hostname: porta
+role: gateway
+
+# MAC addresses
+interface_mac: "02:DD:04:01:01:01"  # Inside interface (primary)
+
+# Network configuration
+interfaces:
+  - name: enp0s8
+    type: static
+    address: 192.168.100.1/24
+    # No gateway - porta IS the gateway
+    dns:
+      - 192.168.100.10
+      - 192.168.100.11
+    
+  - name: enp0s9
+    type: dhcp
+    
+  - name: enp0s10
+    type: dhcp
+
+# DNS configuration
+dns_static_record: true

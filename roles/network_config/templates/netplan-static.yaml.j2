@@ -1,0 +1,33 @@
+# Netplan configuration for {{ inventory_hostname }}
+# Managed by Ansible - DO NOT EDIT MANUALLY
+# Network interfaces configured via host_vars
+
+network:
+  version: 2
+  ethernets:
+{% for interface in interfaces %}
+    {{ interface.name }}:
+{% if interface.type == 'static' %}
+      addresses:
+        - {{ interface.address }}
+{% if interface.gateway is defined %}
+      routes:
+        - to: default
+          via: {{ interface.gateway }}
+{% endif %}
+{% if interface.dns is defined %}
+      nameservers:
+        addresses:
+{% for dns in interface.dns %}
+          - {{ dns }}
+{% endfor %}
+        search:
+          - {{ dns_domain }}
+{% endif %}
+{% elif interface.type == 'dhcp' %}
+      dhcp4: true
+{% if interface.dhcp6 is defined and interface.dhcp6 %}
+      dhcp6: true
+{% endif %}
+{% endif %}
+{% endfor %}

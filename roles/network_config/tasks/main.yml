@@ -1,0 +1,46 @@
+---
+# Network Configuration Role Tasks
+
+- name: Verify network interfaces are defined
+  assert:
+    that:
+      - interfaces is defined
+      - interfaces | length > 0
+    fail_msg: "interfaces must be defined in host_vars for {{ inventory_hostname }}"
+  tags:
+    - network
+
+- name: Disable cloud-init network configuration
+  copy:
+    content: "network: {config: disabled}\n"
+    dest: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - network
+
+- name: Remove cloud-init netplan config
+  file:
+    path: /etc/netplan/50-cloud-init.yaml
+    state: absent
+  tags:
+    - network
+
+- name: Configure netplan with static network settings
+  template:
+    src: netplan-static.yaml.j2
+    dest: /etc/netplan/01-netcfg.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  notify: Apply netplan safely
+  tags:
+    - network
+
+- name: Verify netplan configuration
+  command: netplan generate
+  changed_when: false
+  tags:
+    - network

@@ -95,6 +95,18 @@
     - ntp
     - chrony
 
+- name: Configure chrony for VM time sync (handle suspend/resume)
+  lineinfile:
+    path: /etc/chrony/chrony.conf
+    regexp: '^makestep'
+    line: 'makestep 1 -1'
+    insertafter: '^# Step the system clock'
+  notify: restart chrony
+  tags:
+    - common
+    - ntp
+    - chrony
+
 - name: Ensure chrony service is enabled and started
   service:
     name: chrony

@@ -1,0 +1,10 @@
+---
+# Default values for network_config role
+
+# DNS domain
+dns_domain: dicky.lab
+
+# Default DNS servers (used if not overridden in host_vars)
+default_dns_servers:
+  - 192.168.100.10
+  - 192.168.100.11
