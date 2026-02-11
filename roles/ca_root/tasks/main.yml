@@ -13,37 +13,37 @@
     - always
 
 - name: Include prerequisites tasks
-  ansible.builtin.include_tasks: prerequisites.yml
+  ansible.builtin.import_tasks: prerequisites.yml
   tags:
     - prerequisites
     - ca_root
 
 - name: Include directory structure tasks
-  ansible.builtin.include_tasks: directory_structure.yml
+  ansible.builtin.import_tasks: directory_structure.yml
   tags:
     - directory_structure
     - ca_root
 
 - name: Include OpenSSL configuration tasks
-  ansible.builtin.include_tasks: openssl_config.yml
+  ansible.builtin.import_tasks: openssl_config.yml
   tags:
     - openssl_config
     - ca_root
 
 - name: Include CA generation tasks
-  ansible.builtin.include_tasks: generate_ca.yml
+  ansible.builtin.import_tasks: generate_ca.yml
   tags:
     - generate_ca
     - ca_root
 
 - name: Include verification tasks
-  ansible.builtin.include_tasks: verification.yml
+  ansible.builtin.import_tasks: verification.yml
   tags:
     - verification
     - ca_root
 
 - name: Include backup tasks
-  ansible.builtin.include_tasks: backup.yml
+  ansible.builtin.import_tasks: backup.yml
   when: ca_backup_enabled | bool
   tags:
     - backup
