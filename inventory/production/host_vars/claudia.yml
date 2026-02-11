@@ -5,6 +5,18 @@ role: dns_dhcp_secondary
 # MAC address (Core Network Services, host 2)
 interface_mac: "02:dc:03:02:01:01"
 
+# Network configuration (NEW)
+interfaces:
+  - name: enp0s8
+    type: static
+    address: 192.168.100.11/24
+    gateway: 192.168.100.1
+    dns:
+      - 127.0.0.1           # Use itself first
+      - 192.168.100.10      # Fallback to titus
+  - name: enp0s9
+    type: dhcp              # OOB management interface
+
 # DNS configuration
 dns_role: secondary
 dns_is_primary: false

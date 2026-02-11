@@ -10,7 +10,7 @@ options {
     // Listen on IPv4
     listen-on port 53 { 
         127.0.0.1;
-        {{ ansible_default_ipv4.address }};
+        {{ ansible_enp0s8.ipv4.address }};
     };
 
     // Disable IPv6

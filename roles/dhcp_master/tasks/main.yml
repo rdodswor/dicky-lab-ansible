@@ -122,7 +122,6 @@
   tags:
     - dhcp
     - config
-    - validation
 
 - name: Ensure DHCP service is enabled and started
   service:

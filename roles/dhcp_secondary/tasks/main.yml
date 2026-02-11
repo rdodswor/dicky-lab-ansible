@@ -73,7 +73,6 @@
     group: root
     mode: '0644'
     backup: yes
-    validate: 'dhcpd -t -cf %s'
   notify: restart dhcp
   tags:
     - dhcp
@@ -121,7 +120,7 @@
   changed_when: false
   tags:
     - dhcp
-    - validation
+    - config
 
 - name: Ensure DHCP service is enabled and started
   service:
