@@ -33,13 +33,13 @@
 - name: Include CA generation tasks
   ansible.builtin.import_tasks: generate_ca.yml
   tags:
-    - generate_ca
+    - generate
     - ca_root
 
 - name: Include verification tasks
   ansible.builtin.import_tasks: verification.yml
   tags:
-    - verification
+    - verify
     - ca_root
 
 - name: Include backup tasks

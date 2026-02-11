@@ -175,7 +175,7 @@
   tags:
     - common
     - security
-    - unattended-upgrades
+    - unattended_upgrades
 
 - name: Configure unattended-upgrades
   template:
@@ -192,7 +192,7 @@
   tags:
     - common
     - security
-    - unattended-upgrades
+    - unattended_upgrades
 
 - name: Configure automatic updates
   template:
@@ -209,7 +209,7 @@
   tags:
     - common
     - security
-    - unattended-upgrades
+    - unattended_upgrades
 
 - name: Ensure unattended-upgrades service is enabled and started
   service:
@@ -222,4 +222,4 @@
   tags:
     - common
     - security
-    - unattended-upgrades
+    - unattended_upgrades

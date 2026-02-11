@@ -10,6 +10,7 @@
     port: "{{ ssh_port }}"
     proto: tcp
   tags:
+    - ca_root
     - firewall
 
 - name: Configure firewall default policies
@@ -20,12 +21,14 @@
     - { direction: 'incoming', policy: 'deny' }
     - { direction: 'outgoing', policy: 'allow' }
   tags:
+    - ca_root
     - firewall
 
 - name: Enable firewall
   community.general.ufw:
     state: enabled
   tags:
+    - ca_root
     - firewall
 
 - name: Disable unnecessary services for CA server
@@ -38,4 +41,5 @@
     - cups.service
   failed_when: false
   tags:
-    - services
+    - ca_root
+    - security

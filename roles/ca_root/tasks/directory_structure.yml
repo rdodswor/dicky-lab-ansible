@@ -9,6 +9,7 @@
     group: root
     mode: "{{ ca_public_dir_mode }}"
   tags:
+    - ca_root
     - directories
 
 - name: Create CA subdirectories
@@ -20,6 +21,7 @@
     mode: "{{ ca_public_dir_mode }}"
   loop: "{{ ca_subdirs }}"
   tags:
+    - ca_root
     - directories
 
 - name: Secure private directory with restrictive permissions
@@ -30,6 +32,7 @@
     group: root
     mode: "{{ ca_private_dir_mode }}"
   tags:
+    - ca_root
     - directories
 
 - name: Create CA database file
@@ -42,6 +45,7 @@
     modification_time: preserve
     access_time: preserve
   tags:
+    - ca_root
     - directories
 
 - name: Initialize serial number file
@@ -53,6 +57,7 @@
     mode: "0644"
     force: false
   tags:
+    - ca_root
     - directories
 
 - name: Initialize CRL number file
@@ -64,4 +69,5 @@
     mode: "0644"
     force: false
   tags:
+    - ca_root
     - directories

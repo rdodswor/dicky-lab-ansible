@@ -10,6 +10,7 @@
     mode: "{{ ca_config_mode }}"
     backup: true
   tags:
+    - ca_root
     - config
 
 - name: Deploy CA documentation
@@ -20,5 +21,6 @@
     group: root
     mode: "0644"
   tags:
+    - ca_root
     - config
     - documentation

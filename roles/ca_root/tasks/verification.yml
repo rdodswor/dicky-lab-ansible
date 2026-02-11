@@ -6,15 +6,17 @@
     path: "{{ ca_base_dir }}/certs/ca.cert.pem"
   register: ca_cert_check
   tags:
+    - ca_root
     - verify
 
 - name: Fail if certificate doesn't exist
   ansible.builtin.fail:
     msg: "Root CA certificate not found at {{ ca_base_dir }}/certs/ca.cert.pem"
-  when: 
+  when:
     - not ca_cert_check.stat.exists
     - not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Skip verification in check mode
@@ -22,6 +24,7 @@
     msg: "Skipping verification - running in check mode (files not actually created)"
   when: ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Get Root CA certificate subject
@@ -31,6 +34,7 @@
   changed_when: false
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Get Root CA certificate issuer
@@ -40,6 +44,7 @@
   changed_when: false
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Get Root CA certificate validity dates
@@ -49,6 +54,7 @@
   changed_when: false
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Get Root CA certificate fingerprint
@@ -58,6 +64,7 @@
   changed_when: false
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Verify certificate basic constraints
@@ -67,6 +74,7 @@
   changed_when: false
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Display verification results
@@ -85,6 +93,7 @@
       - "════════════════════════════════════════════════════════════"
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Verify certificate modulus matches private key
@@ -105,6 +114,7 @@
   failed_when: modulus_check.rc != 0
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify
 
 - name: Display modulus verification result
@@ -112,4 +122,5 @@
     msg: "{{ modulus_check.stdout }}"
   when: not ansible_check_mode
   tags:
+    - ca_root
     - verify

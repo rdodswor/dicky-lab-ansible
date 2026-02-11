@@ -9,6 +9,7 @@
     group: root
     mode: "0700"
   tags:
+    - ca_root
     - backup
 
 - name: Create timestamped CA backup archive
@@ -20,6 +21,7 @@
     group: root
     mode: "0600"
   tags:
+    - ca_root
     - backup
 
 - name: Find all backup files
@@ -29,6 +31,7 @@
     age_stamp: mtime
   register: backup_files
   tags:
+    - ca_root
     - backup
 
 - name: Display backup information
@@ -40,6 +43,7 @@
       - "Total backups: {{ backup_files.matched }}"
   when: backup_files.matched > 0
   tags:
+    - ca_root
     - backup
 
 - name: Remove old backups (keep last 5)
@@ -47,10 +51,11 @@
     path: "{{ item.path }}"
     state: absent
   loop: "{{ backup_files.files | sort(attribute='mtime', reverse=true) | list }}"
-  when: 
+  when:
     - backup_files.matched > 5
     - loop.index0 >= 5
   loop_control:
     extended: true
   tags:
+    - ca_root
     - backup

@@ -6,6 +6,7 @@
     path: "{{ ca_base_dir }}/private/ca.key.pem"
   register: ca_private_key
   tags:
+    - ca_root
     - generate
 
 - name: Check if Root CA certificate exists
@@ -13,17 +14,19 @@
     path: "{{ ca_base_dir }}/certs/ca.cert.pem"
   register: ca_certificate
   tags:
+    - ca_root
     - generate
 
 - name: Display warning if CA already exists
   ansible.builtin.debug:
-    msg: 
+    msg:
       - "⚠️  WARNING: Root CA already exists on {{ inventory_hostname }}"
       - "Private key: {{ ca_private_key.stat.exists | ternary('EXISTS', 'MISSING') }}"
       - "Certificate: {{ ca_certificate.stat.exists | ternary('EXISTS', 'MISSING') }}"
       - "Skipping generation to prevent overwriting existing CA"
   when: ca_private_key.stat.exists or ca_certificate.stat.exists
   tags:
+    - ca_root
     - generate
 
 - name: Generate Root CA private key with passphrase
@@ -37,6 +40,7 @@
   no_log: true
   when: not ca_private_key.stat.exists
   tags:
+    - ca_root
     - generate
     - generate_key
 
@@ -46,10 +50,11 @@
     owner: root
     group: root
     mode: "{{ ca_private_key_mode }}"
-  when: 
+  when:
     - ca_private_key.stat.exists or not ca_private_key.stat.exists
     - not ansible_check_mode
   tags:
+    - ca_root
     - generate
     - generate_key
 
@@ -66,6 +71,7 @@
   no_log: true
   when: not ca_certificate.stat.exists
   tags:
+    - ca_root
     - generate
     - generate_cert
 
@@ -75,10 +81,11 @@
     owner: root
     group: root
     mode: "{{ ca_cert_mode }}"
-  when: 
+  when:
     - ca_certificate.stat.exists or not ca_certificate.stat.exists
     - not ansible_check_mode
   tags:
+    - ca_root
     - generate
     - generate_cert
 
@@ -91,5 +98,6 @@
     mode: "0644"
     remote_src: true
   tags:
+    - ca_root
     - generate
     - export
