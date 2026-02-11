@@ -4,3 +4,6 @@
 /tmp/
 /backups/
 *.log
+
+.vault_pass
+~/.vault_pass
