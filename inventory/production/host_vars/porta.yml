@@ -15,22 +15,22 @@ interfaces:
       - 192.168.100.10
       - 192.168.100.11
     
-  - name: enp0s9
+  - name: enp0s9                # OOB management interface
     type: dhcp
     dhcp4_overrides:
+      use_routes: false
       use_dns: false
     dhcp6: true
     dhcp6_overrides:
+      use_routes: false
       use_dns: false
 
-  - name: enp0s10
+  - name: enp0s10               # External/WAN interface
     type: dhcp
     dhcp4_overrides:
-      use_routes: false
       use_dns: false
     dhcp6: true
     dhcp6_overrides:
-      use_routes: false
       use_dns: false
 
 # DNS configuration
